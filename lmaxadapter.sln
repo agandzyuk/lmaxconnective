@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lmaxadapter_vs2010", "lmaxadapter\lmaxadapter.vcxproj", "{C19BC9DE-FF98-4D60-91D3-10CF08BB64B7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mqlbridge_vs2010", "mqlbridge\mqlbridge.vcxproj", "{FCF23552-E162-449B-810C-97FCDD246F3A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LMAXTestClient_vs2010", "lmaxtestclient\LMAXTestClient.vcxproj", "{F7C69930-6651-4166-9D50-E574B272E6D7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C19BC9DE-FF98-4D60-91D3-10CF08BB64B7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C19BC9DE-FF98-4D60-91D3-10CF08BB64B7}.Debug|Win32.Build.0 = Debug|Win32
+		{C19BC9DE-FF98-4D60-91D3-10CF08BB64B7}.Release|Win32.ActiveCfg = Release|Win32
+		{C19BC9DE-FF98-4D60-91D3-10CF08BB64B7}.Release|Win32.Build.0 = Release|Win32
+		{FCF23552-E162-449B-810C-97FCDD246F3A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FCF23552-E162-449B-810C-97FCDD246F3A}.Debug|Win32.Build.0 = Debug|Win32
+		{FCF23552-E162-449B-810C-97FCDD246F3A}.Release|Win32.ActiveCfg = Release|Win32
+		{FCF23552-E162-449B-810C-97FCDD246F3A}.Release|Win32.Build.0 = Release|Win32
+		{F7C69930-6651-4166-9D50-E574B272E6D7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F7C69930-6651-4166-9D50-E574B272E6D7}.Debug|Win32.Build.0 = Debug|Win32
+		{F7C69930-6651-4166-9D50-E574B272E6D7}.Release|Win32.ActiveCfg = Release|Win32
+		{F7C69930-6651-4166-9D50-E574B272E6D7}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

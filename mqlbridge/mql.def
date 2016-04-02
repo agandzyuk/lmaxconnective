@@ -1,0 +1,8 @@
+LIBRARY mql
+VERSION 2.0
+EXPORTS
+__getSymbols
+__getBid
+__getAsk
+__setBid
+__setAsk
