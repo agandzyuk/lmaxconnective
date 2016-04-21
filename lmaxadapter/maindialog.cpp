@@ -34,6 +34,12 @@ MainDialog::~MainDialog()
     ini_.Save();
 }
 
+bool MainDialog::event(QEvent* e)
+{
+    CDebug() << "MainDialog " << e->type();
+    return QDialog::event(e);
+}
+
 void MainDialog::onStart()
 {
     QTimer::singleShot(0, this, SLOT(asyncLaunchConnectionDialog()));

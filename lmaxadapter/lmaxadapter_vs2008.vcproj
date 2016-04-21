@@ -430,10 +430,6 @@
 				>
 			</File>
 			<File
-				RelativePath="tmp\moc\moc_table.cpp"
-				>
-			</File>
-			<File
 				RelativePath="tmp\moc\moc_scheduler.cpp"
 				>
 			</File>
@@ -443,6 +439,10 @@
 			</File>
 			<File
 				RelativePath="tmp\moc\moc_sslclient.cpp"
+				>
+			</File>
+			<File
+				RelativePath="tmp\moc\moc_table.cpp"
 				>
 			</File>
 		</Filter>
@@ -484,14 +484,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\model.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\table.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\logger.cpp"
 				>
 			</File>
@@ -501,6 +493,10 @@
 			</File>
 			<File
 				RelativePath=".\maindialog.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\model.cpp"
 				>
 			</File>
 			<File
@@ -521,6 +517,22 @@
 			</File>
 			<File
 				RelativePath=".\syserrorinfo.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\table.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			>
+			<File
+				RelativePath=".\resources\LMAXAdapter.rc"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\settings.ico"
 				>
 			</File>
 		</Filter>

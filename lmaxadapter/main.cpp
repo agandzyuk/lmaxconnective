@@ -12,9 +12,9 @@ using namespace std;
 ////////////////////////////////////////////////////////////////////////
 // DLL importing routins from mql(d).dll
 ////////////////////////////////////////////////////////////////////////
-typedef double (*importGetFunction)(const char*);
-typedef void   (*importSetFunction)(const char*, double);
-typedef bool   (*importSymbolsFunction)(std::vector<std::string>&);
+typedef double (__stdcall *importGetFunction)(const char*);
+typedef void   (__stdcall *importSetFunction)(const char*, double);
+typedef bool   (__stdcall *importSymbolsFunction)(std::vector<std::string>&);
 
 importGetFunction __getBid;
 importGetFunction __getAsk;
@@ -31,12 +31,12 @@ void InitMQLLibrary();
 int main(int argc, char *argv[])
 {
 
-    InitMQLLibrary();
+    //InitMQLLibrary();
 
 
     Global::truncateMbFromLog(MESSAGES_LOGGING_FILE, MAX_LOG_MESSAGE_SIZE);
     Global::truncateMbFromLog(INFO_LOGGING_FILE, MAX_LOG_INFO_SIZE);
-
+    
     int code = 0;
     try {
         QApplication app(argc, argv);
@@ -46,7 +46,9 @@ int main(int argc, char *argv[])
         app.exec();
     }
     catch(...) 
-    { code = -1; }
+    { 
+        code = -1; 
+    }
 
     string info = "Session closed at " + Global::timestamp();
     CDebug(false) << info.c_str() << "\n\n";

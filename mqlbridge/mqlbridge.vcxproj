@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <ProjectName>MQLBridge</ProjectName>
     <ProjectGuid>{FCF23552-E162-449B-810C-97FCDD246F3A}</ProjectGuid>
     <RootNamespace>MQLBridge</RootNamespace>
     <Keyword>Win32Proj</Keyword>
@@ -62,17 +63,12 @@
     <Link>
       <AdditionalDependencies>$(QTDIR)\lib\Qt5Cored.lib;$(QTDIR)\lib\qtpcred.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetPath)</OutputFile>
-      <Version>2.0</Version>
+      <Version>1.0</Version>
       <ModuleDefinitionFile>mql.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib</AdditionalLibraryDirectories>
     </Link>
-    <PostBuildEvent>
-      <Command>if not exist "..\lmaxadapter\bin" (mkdir "..\lmaxadapter\bin")
-copy "bin\mqld.*d*" "..\lmaxadapter\bin"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -90,19 +86,14 @@ copy "bin\mqld.*d*" "..\lmaxadapter\bin"</Command>
     <Link>
       <AdditionalDependencies>$(QTDIR)\lib\Qt5Core.lib;$(QTDIR)\lib\qtpcre.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetPath)</OutputFile>
-      <Version>2.0</Version>
+      <Version>1.0</Version>
       <ModuleDefinitionFile>mql.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib</AdditionalLibraryDirectories>
     </Link>
-    <PostBuildEvent>
-      <Command>if not exist "..\lmaxadapter\bin" (mkdir "..\lmaxadapter\bin")
-copy "bin\mql.dll" "..\lmaxadapter\bin"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

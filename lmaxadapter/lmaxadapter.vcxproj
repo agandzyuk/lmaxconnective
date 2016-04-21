@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <ProjectName>LMAXAdapter</ProjectName>
     <ProjectGuid>{C19BC9DE-FF98-4D60-91D3-10CF08BB64B7}</ProjectGuid>
     <RootNamespace>LMAXAdapter</RootNamespace>
   </PropertyGroup>
@@ -43,8 +44,7 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\obj\release_static\</IntDir>
     <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</IgnoreImportLibrary>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">lmaxadapter_d</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">lmaxadapter</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -79,7 +79,7 @@
       <AdditionalDependencies>$(QTDIR)\lib\qtmaind.lib;$(QTDIR)\lib\Qt5Guid.lib;$(QTDIR)\lib\Qt5Cored.lib;$(QTDIR)\lib\Qt5Widgetsd.lib;$(QTDIR)\lib\Qt5Networkd.lib;$(QTDIR)\lib\Qt5PlatformSupportd.lib;$(QTDIR)\lib\qtpcred.lib;$(QTDIR)\lib\qtharfbuzzngd.lib;$(QTDIR)\lib\qtfreetyped.lib;$(QTDIR)\plugins\platforms\qwindowsd.lib;$(OPENSSLDIR)\lib\VC\libeay32.lib;$(OPENSSLDIR)\lib\VC\ssleay32.lib;$(OPENSSLDIR)\lib\VC\crypt32.lib;gdi32.lib;comdlg32.lib;oleaut32.lib;imm32.lib;winmm.lib;winspool.lib;ws2_32.lib;ole32.lib;user32.lib;advapi32.lib;msimg32.lib;shell32.lib;kernel32.lib;uuid.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetPath)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>
@@ -87,10 +87,8 @@
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
+      <Version>1.0</Version>
     </Link>
-    <PostBuildEvent>
-      <Command>if exist "..\mqlbridge\bin\mqld.dll" (copy "..\mqlbridge\bin\mqld.*d*" "bin\")</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -101,8 +99,8 @@
     <ClCompile>
       <AdditionalOptions>-Zm200 -w34100 -w34189 -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtNetwork;$(QTDIR)\include;tmp\moc\debug_static;$(QTDIR)\mkspecs\win32-msvc2008;$(OPENSSLDIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>QT_NO_DEBUG;NDEBUG;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtNetwork;$(QTDIR)\include;tmp\moc\debug_static;$(QTDIR)\mkspecs\win32-msvc2010;$(OPENSSLDIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>QT_NO_DEBUG;NDEBUG;_WINDOWS;UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_NO_DEBUG;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -126,17 +124,15 @@
       <AdditionalDependencies>$(QTDIR)\lib\qtmain.lib;$(QTDIR)\lib\Qt5Gui.lib;$(QTDIR)\lib\Qt5Core.lib;$(QTDIR)\lib\Qt5Widgets.lib;$(QTDIR)\lib\Qt5Network.lib;$(QTDIR)\lib\Qt5PlatformSupport.lib;$(QTDIR)\lib\qtpcre.lib;$(QTDIR)\lib\qtharfbuzzng.lib;$(QTDIR)\lib\qtfreetype.lib;$(QTDIR)\plugins\platforms\qwindows.lib;$(OPENSSLDIR)\lib\VC\libeay32.lib;$(OPENSSLDIR)\lib\VC\ssleay32.lib;$(OPENSSLDIR)\lib\VC\crypt32.lib;gdi32.lib;comdlg32.lib;oleaut32.lib;imm32.lib;winmm.lib;winspool.lib;ws2_32.lib;ole32.lib;user32.lib;advapi32.lib;msimg32.lib;shell32.lib;kernel32.lib;uuid.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetPath)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <ProgramDatabaseFile>
       </ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
+      <Version>1.0</Version>
     </Link>
-    <PostBuildEvent>
-      <Command>if exist "..\mqlbridge\bin\mql.dll" (copy "..\mqlbridge\bin\mql.dll" "bin\")</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="connectdlg.h" />
@@ -147,12 +143,12 @@
     <ClInclude Include="ini.h" />
     <CustomBuild Include="instrumentbox.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC instrumentbox.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 instrumentbox.h -o tmp\moc\moc_instrumentbox.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 instrumentbox.h -o tmp\moc\moc_instrumentbox.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;instrumentbox.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\moc\moc_instrumentbox.cpp;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MOC instrumentbox.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 instrumentbox.h -o tmp\moc\moc_instrumentbox.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 instrumentbox.h -o tmp\moc\moc_instrumentbox.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;instrumentbox.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_instrumentbox.cpp;%(Outputs)</Outputs>
@@ -160,12 +156,12 @@
     <ClInclude Include="logger.h" />
     <CustomBuild Include="maindialog.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC maindialog.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 maindialog.h -o tmp\moc\moc_maindialog.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 maindialog.h -o tmp\moc\moc_maindialog.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;maindialog.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\moc\moc_maindialog.cpp;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MOC maindialog.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 maindialog.h -o tmp\moc\moc_maindialog.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 maindialog.h -o tmp\moc\moc_maindialog.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;maindialog.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_maindialog.cpp;%(Outputs)</Outputs>
@@ -177,36 +173,36 @@
     <ClInclude Include="responsehandler.h" />
     <CustomBuild Include="scheduler.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC scheduler.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 scheduler.h -o tmp\moc\moc_scheduler.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 scheduler.h -o tmp\moc\moc_scheduler.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;scheduler.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\moc\moc_scheduler.cpp;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MOC scheduler.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 scheduler.h -o tmp\moc\moc_scheduler.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 scheduler.h -o tmp\moc\moc_scheduler.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;scheduler.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_scheduler.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="setupdlg.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC setupdlg.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 setupdlg.h -o tmp\moc\moc_setupdlg.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 setupdlg.h -o tmp\moc\moc_setupdlg.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;setupdlg.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\moc\moc_setupdlg.cpp;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MOC setupdlg.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 setupdlg.h -o tmp\moc\moc_setupdlg.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 setupdlg.h -o tmp\moc\moc_setupdlg.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;setupdlg.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_setupdlg.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="sslclient.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC sslclient.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 sslclient.h -o tmp\moc\moc_sslclient.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 sslclient.h -o tmp\moc\moc_sslclient.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;sslclient.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\moc\moc_sslclient.cpp;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MOC sslclient.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 sslclient.h -o tmp\moc\moc_sslclient.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 sslclient.h -o tmp\moc\moc_sslclient.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;sslclient.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_sslclient.cpp;%(Outputs)</Outputs>
@@ -214,12 +210,12 @@
     <ClInclude Include="syserrorinfo.h" />
     <CustomBuild Include="table.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC table.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 table.h -o tmp\moc\moc_table.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 table.h -o tmp\moc\moc_table.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;table.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\moc\moc_table.cpp;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MOC table.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 table.h -o tmp\moc\moc_table.cpp
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 table.h -o tmp\moc\moc_table.cpp
 </Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;table.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_table.cpp;%(Outputs)</Outputs>
@@ -228,10 +224,10 @@
   <ItemGroup>
     <ClCompile Include="tmp\moc\moc_instrumentbox.cpp" />
     <ClCompile Include="tmp\moc\moc_maindialog.cpp" />
-    <ClCompile Include="tmp\moc\moc_table.cpp" />
     <ClCompile Include="tmp\moc\moc_scheduler.cpp" />
     <ClCompile Include="tmp\moc\moc_setupdlg.cpp" />
     <ClCompile Include="tmp\moc\moc_sslclient.cpp" />
+    <ClCompile Include="tmp\moc\moc_table.cpp" />
     <ClCompile Include="connectdlg.cpp" />
     <ClCompile Include="defedit.cpp" />
     <ClCompile Include="defines.cpp" />
@@ -240,19 +236,19 @@
     <ClCompile Include="ini.cpp" />
     <ClCompile Include="instrumentbox.cpp" />
     <ClCompile Include="lmaxadapter_plugin_import.cpp" />
-    <ClCompile Include="model.cpp" />
-    <ClCompile Include="table.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="maindialog.cpp" />
+    <ClCompile Include="model.cpp" />
     <ClCompile Include="netmanager.cpp" />
     <ClCompile Include="scheduler.cpp" />
     <ClCompile Include="setupdlg.cpp" />
     <ClCompile Include="sslclient.cpp" />
     <ClCompile Include="syserrorinfo.cpp" />
+    <ClCompile Include="table.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="resources\lmaxadapter.rc" />
+    <ResourceCompile Include="resources\LMAXAdapter.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\settings.ico" />

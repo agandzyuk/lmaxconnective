@@ -11,10 +11,10 @@ using namespace std;
 
 #include "symbols.cpp"
 ///////////////////////////////////////////////////////////////////////////////////
-typedef double (*importGetFunction)(const char*);
-typedef void   (*importSetFunction)(const char*, double);
-typedef bool   (*importSymbolsFunction)(std::vector<std::string>&);
-typedef void   (*importSignalFunction)(LPLONG);
+typedef double (__stdcall *importGetFunction)(const char*);
+typedef void   (__stdcall *importSetFunction)(const char*, double);
+typedef bool   (__stdcall *importSymbolsFunction)(std::vector<std::string>&);
+typedef void   (__stdcall *importSignalFunction)(LPLONG);
 
 ///////////////////////////////////////////////////////////////////////////////////
 struct find_string {

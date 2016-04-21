@@ -1,5 +1,5 @@
 LIBRARY mql
-VERSION 2.0
+VERSION 1.0
 EXPORTS
 __getSymbols
 __getBid

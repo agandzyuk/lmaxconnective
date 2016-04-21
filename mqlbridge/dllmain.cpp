@@ -56,31 +56,31 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 extern "C" {          // we need to export the C interface
 #endif
 
-DLLEXPORT bool __getSymbols(std::vector<std::string>& symbols)
+DLLEXPORT bool __stdcall __getSymbols(std::vector<std::string>& symbols)
 {
     BridgeOrFalse;
 	return bridge->getSymbols(symbols);
 }
 
-DLLEXPORT double __getBid(const char* symbol)
+DLLEXPORT double __stdcall __getBid(const char* symbol)
 {
     BridgeOrZero;
     return bridge->getBid(symbol);
 }
 
-DLLEXPORT double __getAsk(const char* symbol)
+DLLEXPORT double __stdcall __getAsk(const char* symbol)
 {
     BridgeOrZero;
     return bridge->getAsk(symbol);
 }
 
-DLLEXPORT void __setBid(const char* symbol, double value)
+DLLEXPORT void __stdcall __setBid(const char* symbol, double value)
 {
     BridgeOrReturn;
     bridge->setBid(symbol, value);
 }
 
-DLLEXPORT void __setAsk(const char* symbol, double value)
+DLLEXPORT void __stdcall __setAsk(const char* symbol, double value)
 {
     BridgeOrReturn;
     bridge->setAsk(symbol, value);

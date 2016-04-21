@@ -27,6 +27,7 @@ public:
     void onStateChanged(ConnectionState state, 
                         short disconnectStatus = 0);
 
+    bool event(QEvent* e);
     // UI slots
 protected Q_SLOTS:
     void onStart();

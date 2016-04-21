@@ -1,10 +1,83 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="connectdlg.cpp">
-      <Filter>Source Files</Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{f8700c71-c213-405e-91ce-6cb0dcd6e387}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="connectdlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="defedit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="defines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fixdispatcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ini.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="netmanager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="requesthandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="responsehandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="syserrorinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="tmp\moc\moc_instrumentbox.cpp">
+      <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="table.cpp">
+    <ClCompile Include="tmp\moc\moc_maindialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_scheduler.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_setupdlg.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_sslclient.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_table.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="connectdlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="defedit.cpp">
@@ -55,106 +128,12 @@
     <ClCompile Include="syserrorinfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tmp\moc\moc_instrumentbox.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tmp\moc\moc_maindialog.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tmp\moc\moc_scheduler.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tmp\moc\moc_setupdlg.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tmp\moc\moc_sslclient.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tmp\moc\moc_table.cpp">
-      <Filter>Generated Files</Filter>
+    <ClCompile Include="table.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="connectdlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="defedit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="defines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fixdispatcher.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ini.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="netmanager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="requesthandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="responsehandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="syserrorinfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="table.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="sslclient.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="setupdlg.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="scheduler.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="maindialog.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="instrumentbox.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{2189d760-e9e7-4d53-aa0a-c3d8c6b94360}</UniqueIdentifier>
-      <Extensions>*.h,*.hpp,*.hxx</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{ca88ee5a-4176-4225-ab1c-6add6bc791e1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{28783637-5d91-45c7-8a19-430b8db5144f}</UniqueIdentifier>
-      <Extensions>*.c,*.cpp,*.cxx</Extensions>
-    </Filter>
-    <Filter Include="Generated Files">
-      <UniqueIdentifier>{e35a8cfa-3663-4b38-a24b-e92e86d54ac5}</UniqueIdentifier>
-      <Extensions>./tmp/moc/moc*.cpp</Extensions>
-      <ParseFiles>false</ParseFiles>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resources\lmaxadapter.rc">
+    <ResourceCompile Include="resources\LMAXAdapter.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -162,5 +141,25 @@
     <None Include="resources\settings.ico">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="instrumentbox.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="maindialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="scheduler.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="setupdlg.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="sslclient.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="table.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>
