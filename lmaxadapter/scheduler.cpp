@@ -1,67 +1,58 @@
-#include "defines.h"
+#include "globals.h"
 
 #include "scheduler.h"
-#include "maindialog.h"
-#include "fixdispatcher.h"
+#include "netmanager.h"
+#include "quotestablemodel.h"
 
 #include <QtCore>
 
 ////////////////////////////////////////////////////////////////////////////////////
 class RequestTimer: public QTimer {
 public:
-    RequestTimer(QScheduler* parent) : QTimer(parent) {}
+    RequestTimer(Scheduler* parent) : QTimer(parent) {}
     void timerEvent(QTimerEvent* e) { 
-        stop(); ((QScheduler*)parent())->exec(QScheduler::RequestTimerID); 
+        stop(); ((Scheduler*)parent())->exec(Scheduler::RequestTimerID); 
     }
 };
 
 class ResponseTimer: public QTimer {
 public:
-    ResponseTimer(QScheduler* parent) : QTimer(parent) {}
+    ResponseTimer(Scheduler* parent) : QTimer(parent) {}
     void timerEvent(QTimerEvent* e) { 
-        stop(); ((QScheduler*)parent())->exec(QScheduler::ResponseTimerID); 
-    }
-};
-
-class UpdaterTimer: public QTimer {
-public:
-    UpdaterTimer(QScheduler* parent) : QTimer(parent) {}
-    void timerEvent(QTimerEvent* e) { 
-        ((QScheduler*)parent())->exec(QScheduler::UpdaterTimerID); 
+        stop(); ((Scheduler*)parent())->exec(Scheduler::ResponseTimerID); 
     }
 };
 
 class ReconnectTimer: public QTimer {
 public:
-    ReconnectTimer(QScheduler* parent) : QTimer(parent) {}
+    ReconnectTimer(Scheduler* parent) : QTimer(parent) {}
     void timerEvent(QTimerEvent* e) { 
-        stop(); ((QScheduler*)parent())->exec(QScheduler::ReconnectTimerID); 
+        stop(); ((Scheduler*)parent())->exec(Scheduler::ReconnectTimerID); 
     }
 };
 
 class HeartbeatTimer: public QTimer {
 public:
-    HeartbeatTimer(QScheduler* parent) : QTimer(parent) {}
+    HeartbeatTimer(Scheduler* parent) : QTimer(parent) {}
     void timerEvent(QTimerEvent* e) {
-        stop(); ((QScheduler*)parent())->exec(QScheduler::HeartbeatTimerID); 
+        stop(); ((Scheduler*)parent())->exec(Scheduler::HeartbeatTimerID); 
     }
 
 };
 
 class TestrequestTimer: public QTimer {
 public:
-    TestrequestTimer(QScheduler* parent) : QTimer(parent) {}
+    TestrequestTimer(Scheduler* parent) : QTimer(parent) {}
     void timerEvent(QTimerEvent* e) { 
-        stop(); ((QScheduler*)parent())->exec(QScheduler::TestrequestTimerID); 
+        stop(); ((Scheduler*)parent())->exec(Scheduler::TestrequestTimerID); 
     }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
-QScheduler::QScheduler(QObject* parent)
+Scheduler::Scheduler(QObject* parent)
     : QObject(parent),
     requeste_(new RequestTimer(this) ),
     response_(new ResponseTimer(this) ),
-    updater_(new UpdaterTimer(this) ),
     reconnect_(new ReconnectTimer(this) ),
     heartbeat_(new HeartbeatTimer(this) ),
     testrequest_(new TestrequestTimer(this) ),
@@ -69,22 +60,22 @@ QScheduler::QScheduler(QObject* parent)
     allowReconnect_(true)
 {}
 
-QScheduler::~QScheduler()
+Scheduler::~Scheduler()
 {
     requeste_->stop();
     response_->stop();
-    updater_->stop();
     reconnect_->stop();
     heartbeat_->stop();
     testrequest_->stop();
 }
 
-bool QScheduler::activateSSLReconnect()
+bool Scheduler::activateSSLReconnect()
 {
     if( !allowReconnect_ )
         return false;
 
-    if( manager() ) {
+    if( manager() ) 
+    {
         if( manager()->disconnectStatus() == RemoteDisconnect )
             reconnectInterval_ = 0;
         else
@@ -96,47 +87,43 @@ bool QScheduler::activateSSLReconnect()
     return true;
 }
 
-void QScheduler::activateHeartbeat(qint32 ms)
+void Scheduler::activateHeartbeat(qint32 ms)
 {
     heartbeat_->setSingleShot(true);
     heartbeat_->start(ms);
 }
 
-void QScheduler::activateTestrequest(qint32 ms)
+void Scheduler::activateTestrequest(qint32 ms)
 {
     testrequest_->setSingleShot(true);
     testrequest_->start(ms);
 }
 
-void QScheduler::activateLogout()
+void Scheduler::activateLogout()
 {
     {
-        QMutexLocker g(&quardReqQueue_);
+        QMutexLocker g(&guardReqQueue_);
         reqQueue_.clear();
-    }
-    {
-        QMutexLocker g(&quardRespQueue_);
-        respQueue_.clear();
     }
     requeste_->setSingleShot(true);
     requeste_->start();
 }
 
-void QScheduler::activateMarketRequest(const QString& symbol, const QString& code)
+void Scheduler::activateRequest(const Instrument& inst)
 {
-    QMutexLocker g(&quardReqQueue_);
+    QMutexLocker g(&guardReqQueue_);
 
     // remove all with similar symbols OR symb codes, 
     // insert ordinal last request instead
-    SPairsT::iterator It = reqQueue_.begin();
+    SPairQueue::iterator It;
     do {
-        It = qFind(It, reqQueue_.end(), SPair(symbol,code));
+        It = qFind(reqQueue_.begin(), reqQueue_.end(), inst);
         if( It == reqQueue_.end() )
             break;
         It = reqQueue_.erase(It);
     }
     while(It != reqQueue_.end());
-    reqQueue_.push_back(SPair(symbol,code));
+    reqQueue_.push_back(inst);
 
     if( !requeste_->isActive() ) {
         requeste_->setSingleShot(true);
@@ -144,47 +131,39 @@ void QScheduler::activateMarketRequest(const QString& symbol, const QString& cod
     }
 }
 
-void QScheduler::activateMarketResponse(const QString& symbol, const QString& code)
+void Scheduler::activateResponse(const Instrument& inst)
 {
-    QMutexLocker g(&quardRespQueue_);
-
+    QMutexLocker g(&guardRespQueue_);
+    
     // remove all with similar symbols OR symb codes, 
     // insert ordinal last response instead
-    SPairsT::iterator It = respQueue_.begin();
+    SPairQueue::iterator It;
     do {
-        It = qFind(It, respQueue_.end(), SPair(symbol,code));
+        It = qFind(respQueue_.begin(), respQueue_.end(), inst);
         if( It == respQueue_.end() )
             break;
         It = respQueue_.erase(It);
     }
     while(It != respQueue_.end());
-    respQueue_.push_back(SPair(symbol,code));
+    respQueue_.push_back(inst);
 
-    if(!response_->isActive()) {
+    if( !response_->isActive() ) {
         response_->setSingleShot(true);
         response_->start();
     }
 }
 
-void QScheduler::activateSymbolsUpdater(qint32 msPeriod)
-{
-    updater_->setSingleShot(false);
-    updater_->start(msPeriod);
-}
-
-void QScheduler::setReconnectEnabled(int on)
+void Scheduler::setReconnectEnabled(int on)
 {
     allowReconnect_ = on;
 }
 
-void QScheduler::exec(TimerID id)
+void Scheduler::exec(TimerID id)
 {
     if( id == RequestTimerID)
-        onMarketRequestEvent();
+        onRequestEvent();
     if( id == ResponseTimerID)
-        onMarketResponseEvent();
-    else if( id == UpdaterTimerID)
-        onUpdaterEvent();
+        onResponseEvent();
     else if( id == ReconnectTimerID)
         onReconnectEvent();
     else if( id == HeartbeatTimerID)
@@ -193,65 +172,63 @@ void QScheduler::exec(TimerID id)
         onTestrequestEvent();
 }
 
-void QScheduler::onMarketRequestEvent()
+void Scheduler::onRequestEvent()
 {
     NetworkManager* mgr = manager();
     if(mgr == NULL)
         return;
 
-    QString sym, code;
+    Instrument inst;
     {
-        QMutexLocker g(&quardReqQueue_);
+        QMutexLocker g(&guardReqQueue_);
         if( reqQueue_.isEmpty() )
             return;
 
-        sym  = reqQueue_.begin()->first;
-        code = reqQueue_.begin()->second;
+        inst = *reqQueue_.begin();
         reqQueue_.pop_front();
     }
 
-    mgr->onHaveToMarketRequest(sym,code);
+    if( inst.first.substr(0,8) == "Disable_")
+        mgr->onHaveToUnSubscribe(Instrument(inst.first.c_str()+8,inst.second));
+    else
+        mgr->onHaveToSubscribe(inst);
 
-    QMutexLocker g(&quardReqQueue_);
+    QMutexLocker g(&guardReqQueue_);
     if(!requeste_->isActive() && !reqQueue_.isEmpty()) {
         requeste_->setSingleShot(true);
         requeste_->start();
     }
 }
 
-void QScheduler::onMarketResponseEvent()
+void Scheduler::onResponseEvent()
 {
-    FIXDispatcher* disp = fixdispatcher();
-    if(disp == NULL)
+    NetworkManager* mgr = manager();
+    if(mgr == NULL)
         return;
 
-    QString sym;
+    Instrument inst;
     {
-        QMutexLocker g(&quardRespQueue_);
+        QMutexLocker g(&guardRespQueue_);
         if( respQueue_.isEmpty() )
             return;
 
-        sym  = respQueue_.begin()->first;
+        inst = *respQueue_.begin();
         respQueue_.pop_front();
     }
 
-    disp->onResponseReceived(sym);
+    if( inst.first == "FullUpdate" )
+        emit model()->onInstrumentUpdate();
+    else
+        emit model()->onInstrumentUpdate(inst);
 
-    QMutexLocker g(&quardRespQueue_);
+    QMutexLocker g(&guardRespQueue_);
     if(!response_->isActive() && !respQueue_.isEmpty()) {
         response_->setSingleShot(true);
         response_->start();
     }
 }
 
-void QScheduler::onUpdaterEvent()
-{
-    NetworkManager* mgr = manager();
-    if(mgr)
-        mgr->onHaveToSymbolsUpdate();
-}
-
-void QScheduler::onReconnectEvent()
+void Scheduler::onReconnectEvent()
 {
     NetworkManager* mgr = manager();
     if(NULL == mgr || !allowReconnect_)
@@ -260,38 +237,38 @@ void QScheduler::onReconnectEvent()
     short status = mgr->disconnectStatus();
     if( status  != ForcedDisconnect ) {
         CDebug() << "Reconnect: passed " << reconnectInterval_ << " msecs";
-        mgr->asyncStart(true);
+        QTimer::singleShot(0, mgr->parent(), SLOT(asyncStart()) );
     }
 }
 
-void QScheduler::onHeartbeatEvent()
+void Scheduler::onHeartbeatEvent()
 {
     NetworkManager* mgr = manager();
     if( mgr )
         mgr->onHaveToHeartbeat();
 }
 
-void QScheduler::onTestrequestEvent()
+void Scheduler::onTestrequestEvent()
 {
     NetworkManager* mgr = manager();
     if( mgr )
         mgr->onHaveToTestRequest();
 }
 
-NetworkManager* QScheduler::manager() const
+NetworkManager* Scheduler::manager() const
 {
-    MainDialog* netman = qobject_cast<MainDialog*>(parent());
+    NetworkManager* netman = qobject_cast<NetworkManager*>(parent());
     if( NULL == netman ) {
-        CDebug() << "QScheduler: Error of NetworkManager qobject_cast";
+        CDebug() << "Scheduler: Error of NetworkManager qobject_cast";
         return NULL;
     }
     return netman;
 }
 
-FIXDispatcher* QScheduler::fixdispatcher() const
+MarketAbstractModel* Scheduler::model() const
 {
-    NetworkManager* mgr = manager();
-    if( mgr )
-        return mgr->dispatcher_.data();
+    NetworkManager* netman = manager();
+    if( netman )
+        return netman->model();
     return NULL;
 }

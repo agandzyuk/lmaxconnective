@@ -1,10 +1,10 @@
-#ifndef __instrumentbox_h__
-#define __instrumentbox_h__
+#ifndef __symboleditdialog_h__
+#define __symboleditdialog_h__
 
-#include "defedit.h"
+#include "defaultedit.h"
 #include <QDialog>
 
-class QIni;
+class MarketAbstractModel;
 
 QT_BEGIN_NAMESPACE
 class QPushButton;
@@ -12,10 +12,10 @@ QT_END_NAMESPACE
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-class QNotifyEdit : public QDefEdit
+class SymbolEdit : public DefaultEdit
 {
     Q_OBJECT
-
+    friend class SymbolEditDialog;
 public:
     enum NotifyControl {
         SymbolAddID = 0,
@@ -25,11 +25,11 @@ public:
     };
 
 public:
-    QNotifyEdit(const QIni& ini_,
-                const QString& defText, 
-                const QString& helpText,
-                NotifyControl ctrlID,
-                QWidget* parent);
+    SymbolEdit(const QString& defText, 
+               const QString& helpText,
+               NotifyControl ctrlID,
+               MarketAbstractModel& model,
+               QWidget* parent);
 
     bool updateAllowed() const;
 
@@ -41,31 +41,32 @@ protected:
     void update();
 
 private:
-    const QIni& ini_;
+    MarketAbstractModel& model_;
     NotifyControl ctrlID_;
     bool updateAllowed_;
 };
 
 /////////////////////////////////////////////////////////////////////////////////
-class InstrumentBox : public QDialog
+class SymbolEditDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    InstrumentBox(const QString& symbol, 
-                  const QString& code, 
-                  const QIni& ini,
-                  QWidget* parent);
+    SymbolEditDialog(const QString& symbol, 
+                     const QString& code, 
+                     MarketAbstractModel& model,
+                     QWidget* parent);
 
 protected slots:
     void onApply();
+    void onOK();
     void onContentChanged();
 
 private:
     QPushButton* btnApply_;
-    QNotifyEdit* symbolEdit_;
-    QNotifyEdit* codeEdit_;
+    SymbolEdit* symbolEdit_;
+    SymbolEdit* codeEdit_;
     bool addBox_;
 };
 
-#endif // __instrumentbox_h__
+#endif // __symboleditdialog_h__

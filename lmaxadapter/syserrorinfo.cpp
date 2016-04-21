@@ -1,10 +1,11 @@
 #pragma warning(disable:4996)
 
-#include "defines.h"
 #include "syserrorinfo.h"
 #include <windows.h>
 
-SysErrorInfo::SysErrorInfo(const QString& msg, int errNo)
+using namespace std;
+
+SysErrorInfo::SysErrorInfo(const string& msg, int errNo)
     : info_(msg)
 {
     char buf[512];
@@ -33,11 +34,11 @@ SysErrorInfo::SysErrorInfo(const QString& msg, int errNo)
         if(fOk > 2 && ('\r' == static_cast<const char*>(hlocal)[fOk-2]) )
 		    fOk -= 2;
 
-        info_ += " : " + QString::fromLocal8Bit((LPSTR)hlocal, fOk) + " (" + buf + ")";
+        info_ += " : " + string((LPSTR)hlocal, fOk) + " (" + buf + ")";
     }
     else
     {
-	    info_ += QString(" (Error code = ") + buf + ")";
+	    info_ += string(" (Error code = ") + buf + ")";
     }
 
     LocalFree(hlocal);

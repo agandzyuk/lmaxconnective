@@ -16,7 +16,7 @@
 #define WarningState        (RequestHandler::HasWarning)
 
 // enum DisconnectStatus
-#define NoDisconnect        (RequestHandler::Connected)
+#define NoDisconnect        (RequestHandler::None)
 #define ClientDisconnect    (RequestHandler::Client)
 #define RemoteDisconnect    (RequestHandler::Remote)
 #define ForcedDisconnect    (RequestHandler::Forced)
@@ -45,13 +45,13 @@ public:
 
     virtual ~RequestHandler() {};
 
-    virtual void onStateChanged(ConnectionState state, 
-                                short disconnectStatus = 0) = 0;
-    virtual void onMessageReceived(const QByteArray& message) const = 0;
+    virtual void onStateChanged(int state, short disconnectStatus) = 0;
+    virtual void onMessageReceived(const QByteArray& message) = 0;
     virtual void onHaveToLogin() = 0;
     virtual void onHaveToLogout() = 0;
     virtual void onHaveToTestRequest() = 0;
-    virtual void onHaveToHeartbeat() const = 0;
+    virtual void onHaveToHeartbeat() = 0;
+    virtual bool onHaveToSendMessage(const QByteArray& message) = 0;
 
     virtual QString errorString() const = 0;
     virtual short disconnectStatus() const = 0;

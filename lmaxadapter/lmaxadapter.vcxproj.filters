@@ -14,35 +14,33 @@
       <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{f8700c71-c213-405e-91ce-6cb0dcd6e387}</UniqueIdentifier>
+      <UniqueIdentifier>{fd477008-aa0b-444d-b838-5f9a01cc403d}</UniqueIdentifier>
+      <Extensions>*.rc,*.ico</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="connectdlg.h">
+    <ClInclude Include="baseini.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="defedit.h">
+    <ClInclude Include="connectdialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="defines.h">
+    <ClInclude Include="external.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="fix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fixdispatcher.h">
+    <ClInclude Include="fixdatamodel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ini.h">
+    <ClInclude Include="globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="netmanager.h">
+    <ClInclude Include="marketabstractmodel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="requesthandler.h">
@@ -59,43 +57,58 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="tmp\moc\moc_instrumentbox.cpp">
+    <ClCompile Include="tmp\moc\moc_defaultedit.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_fixlogger.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_fixmessagedialog.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="tmp\moc\moc_maindialog.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="tmp\moc\moc_quotestablemodel.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_quotestableview.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
     <ClCompile Include="tmp\moc\moc_scheduler.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="tmp\moc\moc_setupdlg.cpp">
+    <ClCompile Include="tmp\moc\moc_setupdialog.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="tmp\moc\moc_sslclient.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="tmp\moc\moc_table.cpp">
+    <ClCompile Include="tmp\moc\moc_symboleditdialog.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="connectdlg.cpp">
+    <ClCompile Include="tmp\moc\moc_symbolsmodel.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="baseini.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="defedit.cpp">
+    <ClCompile Include="connectdialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="defines.cpp">
+    <ClCompile Include="defaultedit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fixdispatcher.cpp">
+    <ClCompile Include="fixdatamodel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ini.cpp">
+    <ClCompile Include="fixmessagedialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="instrumentbox.cpp">
+    <ClCompile Include="globals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="lmaxadapter_plugin_import.cpp">
@@ -110,27 +123,111 @@
     <ClCompile Include="maindialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="model.cpp">
+    <ClCompile Include="netmanager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="netmanager.cpp">
+    <ClCompile Include="quotestablemodel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quotestableview.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="scheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="setupdlg.cpp">
+    <ClCompile Include="setupdialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sslclient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="symboleditdialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="symbolsmodel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="syserrorinfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="table.cpp">
+    <ClCompile Include="tmp\moc\moc_netmanager.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_mqlproxyserver.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mqlproxyserver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="fixlogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\addorigin.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\addtoview.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\editfix.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\edorigin.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\first.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\inst_moved.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\inst_nochange.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\instedt_moved.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\instedt_nochange.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\instnew_moved.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\instnew_nochange.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\last.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\next.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\prev.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\rmfromview.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\rmorigin.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\settings.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\viewfix.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\updatereq.ico" />
+    <None Include="resources\removerow.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\subscribe.ico">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resources\unsubscribe.ico">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources\LMAXAdapter.rc">
@@ -138,27 +235,43 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\settings.ico">
-      <Filter>Resource Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="instrumentbox.h">
+    <CustomBuild Include="defaultedit.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="fixmessagedialog.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="maindialog.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="quotestablemodel.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="quotestableview.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
     <CustomBuild Include="scheduler.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="setupdlg.h">
+    <CustomBuild Include="setupdialog.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="sslclient.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="table.h">
+    <CustomBuild Include="symboleditdialog.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="symbolsmodel.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="netmanager.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mqlproxyserver.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="fixlogger.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

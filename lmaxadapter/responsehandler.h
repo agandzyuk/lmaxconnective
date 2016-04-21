@@ -1,32 +1,24 @@
 #ifndef __responsehandler_h__
 #define __responsehandler_h__
 
-#include <QList>
+#include <QByteArray>
 
 ///////////////////////////
-struct MarketReport 
-{
-    QString symbol_;
-    QString code_;
-    QString bid_;
-    QString ask_;
-    QString status_;
-    qint32  requestTime_;
-    qint32  responseTime_;
-    qint32  msgSeqNum_;
-
-    bool operator==(const MarketReport& r) const
-    { return (symbol_ == r.symbol_ ? code_ == r.code_ : false); }
-};
-typedef QList<MarketReport> ReportListT;
-
-///////////////////////////
-class ResponseHandler : public ReportListT
+class ResponseHandler
 {
 public:
     virtual ~ResponseHandler() {}
-    virtual const MarketReport* snapshot(const QString& symbol, const QString& code) const = 0;
-    virtual void onResponseReceived(const QString& symbol) = 0;
+
+protected:
+    virtual void onLogon(const QByteArray& message) = 0;
+    virtual void onLogout(const QByteArray& message) = 0;
+    virtual void onHeartbeat(const QByteArray& message) = 0;
+    virtual void onTestRequest(const QByteArray& message) = 0;
+    virtual void onResendRequest(const QByteArray& message) = 0;
+    virtual void onSequenceReset(const QByteArray& message) = 0;
+    virtual void onMarketData(const QByteArray& message) = 0;
+    virtual void onMarketDataReject(const QByteArray& message) = 0;
+    virtual void onSessionReject(const QByteArray& message) = 0;
 };
 
 #endif /* __responsehandler_h__ */

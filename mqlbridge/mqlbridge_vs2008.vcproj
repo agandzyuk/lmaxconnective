@@ -25,6 +25,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -41,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include&quot;"
+				AdditionalIncludeDirectories="..\lmaxadapter;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\src\corelib\tools&quot;;&quot;$(QTDIR)\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_THREAD_SUPPORT;MQL_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,9 +62,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(QTDIR)\lib\Qt5Cored.lib $(QTDIR)\lib\qtpcred.lib ws2_32.lib"
-				OutputFile=".\Debug\mqld.dll"
-				Version="2.0"
+				AdditionalDependencies="$(QTDIR)\lib\Qt5Cored.lib $(QTDIR)\lib\Qt5Network.lib $(QTDIR)\lib\qtpcred.lib ws2_32.lib"
+				OutputFile="bin\mqld.dll"
+				Version="1.1"
 				LinkIncremental="2"
 				ModuleDefinitionFile="mql.def"
 				GenerateDebugInformation="true"
@@ -90,6 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy &quot;bin\mqld.*d*&quot; &quot;..\lmaxadapter\bin&quot; | copy &quot;bin\mqld.*d*&quot; &quot;..\lmaxtestclient\bin&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -102,6 +104,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="if exist &quot;..\lmaxadapter\external.h&quot; (copy &quot;..\lmaxadapter\external.h&quot; .)"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -119,7 +122,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include&quot;"
+				AdditionalIncludeDirectories="..\lmaxadapter;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\src\corelib\tools&quot;;&quot;$(QTDIR)\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_THREAD_SUPPORT;MQL_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -138,9 +141,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(QTDIR)\lib\Qt5Core.lib $(QTDIR)\lib\qtpcre.lib ws2_32.lib"
-				OutputFile=".\Release\mql.dll"
-				Version="2.0"
+				AdditionalDependencies="$(QTDIR)\lib\Qt5Core.lib $(QTDIR)\lib\Qt5Network.lib $(QTDIR)\lib\qtpcre.lib ws2_32.lib"
+				OutputFile="bin\mql.dll"
+				Version="1.1"
 				LinkIncremental="1"
 				ModuleDefinitionFile="mql.def"
 				GenerateDebugInformation="true"
@@ -169,12 +172,27 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy &quot;bin\mql.dll&quot; &quot;..\lmaxadapter\bin&quot; | copy &quot;bin\mql.dll&quot; &quot;..\lmaxtestclient\bin&quot;&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="Generated Files"
+			Filter="cpp;c;cxx;moc;h;def;odl;idl;res;"
+			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
+			>
+			<File
+				RelativePath="tmp\moc\moc_mqlbridge.cpp"
+				>
+			</File>
+			<File
+				RelativePath="tmp\moc\moc_mqlproxyclient.cpp"
+				>
+			</File>
+		</Filter>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
@@ -206,6 +224,14 @@
 				RelativePath=".\mqlbridge.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\mqlproxyclient.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\lmaxadapter\syserrorinfo.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -213,11 +239,67 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath="..\lmaxadapter\external.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mql.def"
 				>
 			</File>
 			<File
 				RelativePath=".\mqlbridge.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC mqlbridge.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 mqlbridge.h -o tmp\moc\moc_mqlbridge.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;mqlbridge.h"
+						Outputs="tmp\moc\moc_mqlbridge.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC mqlbridge.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 mqlbridge.h -o tmp\moc\moc_mqlbridge.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;mqlbridge.h"
+						Outputs="tmp\moc\moc_mqlbridge.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\mqlproxyclient.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC mqlproxyclient.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 mqlproxyclient.h -o tmp\moc\moc_mqlproxyclient.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;mqlproxyclient.h"
+						Outputs="tmp\moc\moc_mqlproxyclient.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC mqlproxyclient.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 mqlproxyclient.h -o tmp\moc\moc_mqlproxyclient.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;mqlproxyclient.h"
+						Outputs="tmp\moc\moc_mqlproxyclient.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\lmaxadapter\syserrorinfo.h"
 				>
 			</File>
 		</Filter>

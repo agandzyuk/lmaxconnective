@@ -1,12 +1,14 @@
-#ifndef __sslclient_h__
-#define __sslclient_h__
+#ifndef __ssl_client_h__
+#define __ssl_client_h__
 
-#include "defines.h"
 #include "requesthandler.h"
 
-#include <QtNetwork/QAbstractSocket>
-#include <QtNetwork/QSslSocket>
-#include <QtNetwork/QSslConfiguration>
+#include <QThread>
+#include <QWaitCondition>
+#include <QSsl>
+#include <QSslError>
+#include <QAbstractSocket>
+#include <QSharedPointer>
 
 // Aliases for global using
 #define InfoEstablished (SslClient::infoEstablished)
@@ -17,31 +19,25 @@
 #define InfoError       (SslClient::infoError)
 #define InfoWarning     (SslClient::infoWarning)
 
+QT_BEGIN_NAMESPACE;
+class QSslSocket;
+QT_END_NAMESPACE;
+
 //////////////////////////////////////////////////////////////
-class SslClient : public QSslSocket
+class SslClient : public QThread
 {
     Q_OBJECT
 
-    friend class QSharedPointer<SslClient>;
 public:
-    SslClient(RequestHandler* handler, QSsl::SslProtocol proto);
-    virtual ~SslClient();
+    SslClient(QSsl::SslProtocol proto = QSsl::TlsV1_1OrLater, RequestHandler* handler = NULL);
+    ~SslClient();
 
     void establish(const QString& host, quint16 port);
-
-    inline void setIOError(const QString& error) const { 
-        QString serr = errorString();
-        if( !serr.isEmpty() ) {
-            CDebug() << "SslClient::setIOError " << error;
-            const_cast<SslClient*>(this)->setErrorString(error);
-        }
-    }
-
-    inline QString lastError() const 
-    { return errorString(); }
+    QString lastError() const; 
 
 Q_SIGNALS:
     void asyncSending(const QByteArray& message);
+    void notifyStateChanged(int state, short disconnectStatus);
 
 private Q_SLOTS:
     void socketStateChanged(QAbstractSocket::SocketState state);
@@ -52,10 +48,11 @@ private Q_SLOTS:
     void socketSendMessage(const QByteArray& message);
 
 private:
+    void setIOError(const QString& error) const;
     void handleDisconnectError(QAbstractSocket::SocketError sockError);
-    void ConfigureForLMAX(QSsl::SslProtocol proto);
-
-    RequestHandler* handler_;
+    void ConfigureForLMAX();
+    void run();
+    void stop();
 
 public:
     static QString infoEstablished;
@@ -65,8 +62,17 @@ public:
     static QString infoUnconnected;
     static QString infoError;
     static QString infoWarning;
-    FILE* messagesLog_;
+
+private:
+    QSharedPointer<QSslSocket> ssl_;
+    RequestHandler*     handler_;
+    QWaitCondition      threadEvent_;
+    QMutex              threadLock_;
+    QAtomicInt          running_;
+    QSsl::SslProtocol   proto_;
+    QString             host_;
+    quint16             port_;
+    mutable QString     ioError_;
 };
 
-
-#endif /* __sslclient_h__ */
+#endif // __ssl_client_h__

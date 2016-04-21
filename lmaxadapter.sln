@@ -1,12 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lmaxadapter", "lmaxadapter\lmaxadapter.vcxproj", "{C19BC9DE-FF98-4D60-91D3-10CF08BB64B7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LMAXAdapter", "lmaxadapter\lmaxadapter.vcxproj", "{C19BC9DE-FF98-4D60-91D3-10CF08BB64B7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mqlbridge", "mqlbridge\mqlbridge.vcxproj", "{FCF23552-E162-449B-810C-97FCDD246F3A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{F7C69930-6651-4166-9D50-E574B272E6D7} = {F7C69930-6651-4166-9D50-E574B272E6D7}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MQLBridge", "mqlbridge\mqlbridge.vcxproj", "{FCF23552-E162-449B-810C-97FCDD246F3A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LMAXTestClient", "lmaxtestclient\LMAXTestClient.vcxproj", "{F7C69930-6651-4166-9D50-E574B272E6D7}"
 EndProject

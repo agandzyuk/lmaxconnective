@@ -60,7 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\debug\lmaxtest_d.exe"
+				OutputFile="bin\lmaxtest_d.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -86,6 +86,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="if exist &quot;..\mqlbridge\bin\mqld.dll&quot; (copy &quot;..\mqlbridge\bin\mqld.*d*&quot; &quot;bin&quot;)"
 			/>
 		</Configuration>
 		<Configuration
@@ -133,7 +134,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile=".\release\lmaxtest.exe"
+				OutputFile="bin\lmaxtest.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -161,6 +162,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="if exist &quot;..\mqlbridge\bin\mql.dll&quot; (copy &quot;..\mqlbridge\bin\mql.dll&quot; &quot;bin&quot;)"
 			/>
 		</Configuration>
 	</Configurations>
@@ -180,18 +182,6 @@
 				RelativePath=".\symbols.cpp"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
-			>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
 		</Filter>
 	</Files>
 	<Globals>

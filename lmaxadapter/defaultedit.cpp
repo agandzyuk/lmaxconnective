@@ -1,8 +1,8 @@
-#include "defedit.h"
+#include "defaultedit.h"
 #include <QtWidgets>
 
 ///////////////////////////////////////////////////////////////////////////////////
-QDefEdit::QDefEdit(QWidget* parent, const QString& defText, const QString& helpText)
+DefaultEdit::DefaultEdit(QWidget* parent, const QString& defText, const QString& helpText)
     : QLineEdit(parent),
     defText_(defText),
     helpText_(helpText),
@@ -10,29 +10,32 @@ QDefEdit::QDefEdit(QWidget* parent, const QString& defText, const QString& helpT
 {
     setText(defText_);
     update();
+    QObject::connect(this, SIGNAL(notifyModified(bool)), parent, SLOT(onSettingModified(bool)) );
 }
 
-void QDefEdit::keyPressEvent(QKeyEvent* e)
+void DefaultEdit::keyPressEvent(QKeyEvent* e)
 {
     QLineEdit::keyPressEvent(e);
     update();
 }
 
-void QDefEdit::update()
+void DefaultEdit::update()
 {
     QLineEdit::update();
 
     if( !defColor_ && text() == defText_ ) {
         setStyleSheet("QLineEdit {color: #004499}");
         defColor_ = true;
+        emit notifyModified(false);
     }
     else if( defColor_ && text() != defText_ ) {
         setStyleSheet("QLineEdit {color: 0}");
         defColor_ = false;
+        emit notifyModified(true);
     }
 }
 
-bool QDefEdit::event(QEvent* e)
+bool DefaultEdit::event(QEvent* e)
 {
     if( e->type() == QEvent::ToolTip && !helpText_.isEmpty() ) {
         QHelpEvent* helpEvent = static_cast<QHelpEvent*>(e);
@@ -43,17 +46,17 @@ bool QDefEdit::event(QEvent* e)
     return QLineEdit::event(e);
 }
 
-bool QDefEdit::isChanged()
+bool DefaultEdit::isChanged()
 { 
     return !defColor_; 
 }
 
-const QString& QDefEdit::defaultText()
+const QString& DefaultEdit::defaultText()
 {
     return defText_;
 }
 
-void QDefEdit::setDefaultText(const QString& text)
+void DefaultEdit::setDefaultText(const QString& text)
 {
     defText_ = text;
     setText(defText_);

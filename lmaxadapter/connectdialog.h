@@ -1,5 +1,5 @@
-#ifndef __connectdlg_h__
-#define __connectdlg_h__
+#ifndef __connectdialog_h__
+#define __connectdialog_h__
 
 #include "requesthandler.h"
 #include <QDialog>
@@ -9,13 +9,13 @@ class QTextEdit;
 class QPushButton;
 QT_END_NAMESPACE
 
-class QIni;
+class BaseIni;
 
 ////////////////////////////////////
-class ConnectDlg : public QDialog
+class ConnectDialog : public QDialog
 {
 public:
-    ConnectDlg(const QIni& ini_, QWidget* parent);
+    ConnectDialog(const BaseIni& ini, QWidget* parent);
 
     void updateStatus(const QString& info);
     void setReconnect(bool on);
@@ -31,7 +31,7 @@ private:
     void setVisibility();
 
 private:
-    const QIni& ini_;
+    const BaseIni& ini_;
     QTextEdit* statusEdit_;
     QPushButton* disconnectButton_;
 
@@ -41,4 +41,4 @@ private:
     bool hasWarning_;
 };
 
-#endif // __connectdlg_h__
+#endif // __connectdialog_h__

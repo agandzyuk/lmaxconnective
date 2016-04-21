@@ -39,18 +39,22 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">bin\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\obj\debug_static\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bin\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\obj\release_static\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">mqld</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">mql</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(QTDIR)\include\QtCore;$(QTDIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\lmaxadapter;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtNetwork;$(QTDIR)\include;$(QTDIR)\src\corelib\tools;$(ProjectDir)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_THREAD_SUPPORT;MQL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -61,20 +65,28 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(QTDIR)\lib\Qt5Cored.lib;$(QTDIR)\lib\qtpcred.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(QTDIR)\lib\Qt5Cored.lib;$(QTDIR)\lib\Qt5Networkd.lib;$(QTDIR)\lib\qtpcred.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetPath)</OutputFile>
-      <Version>1.0</Version>
+      <Version>1.11</Version>
       <ModuleDefinitionFile>mql.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "bin\mqld.*d*" "..\lmaxadapter\bin" | copy "bin\mqld.*d*" "..\lmaxtestclient\bin"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(QTDIR)\include\QtCore;$(QTDIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\lmaxadapter;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtNetwork;$(QTDIR)\include;$(QTDIR)\src\corelib\tools;$(ProjectDir)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;QT_LARGEFILE_SUPPORT;QT_CORE_LIB;QT_THREAD_SUPPORT;MQL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -84,18 +96,24 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(QTDIR)\lib\Qt5Core.lib;$(QTDIR)\lib\qtpcre.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(QTDIR)\lib\Qt5Core.lib;$(QTDIR)\lib\Qt5Network.lib;$(QTDIR)\lib\qtpcre.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(TargetPath)</OutputFile>
-      <Version>1.0</Version>
+      <Version>1.11</Version>
       <ModuleDefinitionFile>mql.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "bin\mql.dll" "..\lmaxadapter\bin" | copy "bin\mql.dll" "..\lmaxtestclient\bin"
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\lmaxadapter\syserrorinfo.cpp" />
     <ClCompile Include="dllmain.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </PrecompiledHeader>
@@ -105,12 +123,42 @@
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="mqlbridge.cpp" />
+    <ClCompile Include="mqlproxyclient.cpp" />
+    <ClCompile Include="tmp\moc\moc_mqlbridge.cpp" />
+    <ClCompile Include="tmp\moc\moc_mqlproxyclient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="mql.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mqlbridge.h" />
+    <CustomBuild Include="mqlbridge.h">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC mqlbridge.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 mqlbridge.h -o tmp\moc\moc_mqlbridge.cpp
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;mqlbridge.h;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\moc\moc_mqlbridge.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MOC mqlbridge.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 mqlbridge.h -o tmp\moc\moc_mqlbridge.cpp
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;mqlbridge.h;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_mqlbridge.cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="mqlproxyclient.h">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC mqlproxyclient.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 mqlproxyclient.h -o tmp\moc\moc_mqlproxyclient.cpp
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;mqlproxyclient.h;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">tmp\moc\moc_mqlproxyclient.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MOC mqlproxyclient.h</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\release_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 mqlproxyclient.h -o tmp\moc\moc_mqlproxyclient.cpp
+</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;mqlproxyclient.h;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_mqlproxyclient.cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\lmaxadapter\external.h" />
+    <ClInclude Include="..\lmaxadapter\syserrorinfo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

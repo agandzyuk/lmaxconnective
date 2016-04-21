@@ -69,6 +69,7 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -105,6 +106,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="if exist &quot;..\mqlbridge\bin\mqld.dll&quot; (copy &quot;..\mqlbridge\bin\mqld.*d*&quot; &quot;bin\&quot;)"
 			/>
 		</Configuration>
 		<Configuration
@@ -161,6 +163,7 @@
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCLinkerTool"
@@ -168,6 +171,7 @@
 				AdditionalOptions="&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot; &quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot;"
 				AdditionalDependencies="$(QTDIR)\lib\qtmain.lib $(QTDIR)\lib\Qt5Gui.lib $(QTDIR)\lib\Qt5Core.lib $(QTDIR)\lib\Qt5Widgets.lib $(QTDIR)\lib\Qt5Network.lib $(QTDIR)\lib\Qt5PlatformSupport.lib $(QTDIR)\lib\qtpcre.lib $(QTDIR)\lib\qtharfbuzzng.lib $(QTDIR)\lib\qtfreetype.lib $(QTDIR)\plugins\platforms\qwindows.lib $(OPENSSLDIR)\lib\VC\libeay32.lib $(OPENSSLDIR)\lib\VC\ssleay32.lib $(OPENSSLDIR)\lib\VC\crypt32.lib gdi32.lib comdlg32.lib oleaut32.lib imm32.lib winmm.lib winspool.lib ws2_32.lib ole32.lib user32.lib advapi32.lib msimg32.lib shell32.lib kernel32.lib uuid.lib opengl32.lib"
 				OutputFile="bin\LMAXAdapter.exe"
+				Version="1.1"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(QTDIR)\lib,$(QTDIR)\lib"
@@ -196,6 +200,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="if exist &quot;..\mqlbridge\bin\mql.dll&quot; (copy &quot;..\mqlbridge\bin\mql.dll&quot; &quot;bin\&quot;)"
 			/>
 		</Configuration>
 	</Configurations>
@@ -208,41 +213,25 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\connectdlg.h"
+				RelativePath=".\baseini.h"
 				>
 			</File>
 			<File
-				RelativePath=".\defedit.h"
+				RelativePath=".\connectdialog.h"
 				>
 			</File>
 			<File
-				RelativePath=".\defines.h"
-				>
-			</File>
-			<File
-				RelativePath=".\fix.h"
-				>
-			</File>
-			<File
-				RelativePath=".\fixdispatcher.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ini.h"
-				>
-			</File>
-			<File
-				RelativePath=".\instrumentbox.h"
+				RelativePath=".\defaultedit.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="MOC instrumentbox.h"
-						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 instrumentbox.h -o tmp\moc\moc_instrumentbox.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;instrumentbox.h"
-						Outputs="tmp\moc\moc_instrumentbox.cpp"
+						Description="MOC defaultedit.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 defaultedit.h -o tmp\moc\moc_defaultedit.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;defaultedit.h"
+						Outputs="tmp\moc\moc_defaultedit.cpp"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -250,12 +239,80 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="MOC instrumentbox.h"
-						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 instrumentbox.h -o tmp\moc\moc_instrumentbox.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;instrumentbox.h"
-						Outputs="tmp\moc\moc_instrumentbox.cpp"
+						Description="MOC defaultedit.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 defaultedit.h -o tmp\moc\moc_defaultedit.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;defaultedit.h"
+						Outputs="tmp\moc\moc_defaultedit.cpp"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\external.h"
+				>
+			</File>
+			<File
+				RelativePath=".\fix.h"
+				>
+			</File>
+			<File
+				RelativePath=".\fixdatamodel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\fixlogger.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC fixlogger.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 fixlogger.h -o tmp\moc\moc_fixlogger.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;fixlogger.h"
+						Outputs="tmp\moc\moc_fixlogger.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC fixlogger.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 fixlogger.h -o tmp\moc\moc_fixlogger.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;fixlogger.h"
+						Outputs="tmp\moc\moc_fixlogger.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\fixmessagedialog.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC fixmessagedialog.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 fixmessagedialog.h -o tmp\moc\moc_fixmessagedialog.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;fixmessagedialog.h"
+						Outputs="tmp\moc\moc_fixmessagedialog.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC fixmessagedialog.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 fixmessagedialog.h -o tmp\moc\moc_fixmessagedialog.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;fixmessagedialog.h"
+						Outputs="tmp\moc\moc_fixmessagedialog.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\globals.h"
+				>
 			</File>
 			<File
 				RelativePath=".\logger.h"
@@ -288,12 +345,112 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\model.h"
+				RelativePath=".\marketabstractmodel.h"
 				>
+			</File>
+			<File
+				RelativePath=".\mqlproxyserver.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC mqlproxyserver.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 mqlproxyserver.h -o tmp\moc\moc_mqlproxyserver.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;mqlproxyserver.h"
+						Outputs="tmp\moc\moc_mqlproxyserver.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC mqlproxyserver.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 mqlproxyserver.h -o tmp\moc\moc_mqlproxyserver.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;mqlproxyserver.h"
+						Outputs="tmp\moc\moc_mqlproxyserver.cpp"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\netmanager.h"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC netmanager.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 netmanager.h -o tmp\moc\moc_netmanager.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;netmanager.h"
+						Outputs="tmp\moc\moc_netmanager.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC netmanager.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 netmanager.h -o tmp\moc\moc_netmanager.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;netmanager.h"
+						Outputs="tmp\moc\moc_netmanager.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\quotestablemodel.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC quotestablemodel.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 quotestablemodel.h -o tmp\moc\moc_quotestablemodel.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;quotestablemodel.h"
+						Outputs="tmp\moc\moc_quotestablemodel.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC quotestablemodel.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 quotestablemodel.h -o tmp\moc\moc_quotestablemodel.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;quotestablemodel.h"
+						Outputs="tmp\moc\moc_quotestablemodel.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\quotestableview.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC quotestableview.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 quotestableview.h -o tmp\moc\moc_quotestableview.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;quotestableview.h"
+						Outputs="tmp\moc\moc_quotestableview.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC quotestableview.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 quotestableview.h -o tmp\moc\moc_quotestableview.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;quotestableview.h"
+						Outputs="tmp\moc\moc_quotestableview.cpp"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\requesthandler.h"
@@ -334,17 +491,17 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\setupdlg.h"
+				RelativePath=".\setupdialog.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="MOC setupdlg.h"
-						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 setupdlg.h -o tmp\moc\moc_setupdlg.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;setupdlg.h"
-						Outputs="tmp\moc\moc_setupdlg.cpp"
+						Description="MOC setupdialog.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 setupdialog.h -o tmp\moc\moc_setupdialog.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;setupdialog.h"
+						Outputs="tmp\moc\moc_setupdialog.cpp"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -352,10 +509,10 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="MOC setupdlg.h"
-						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 setupdlg.h -o tmp\moc\moc_setupdlg.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;setupdlg.h"
-						Outputs="tmp\moc\moc_setupdlg.cpp"
+						Description="MOC setupdialog.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 setupdialog.h -o tmp\moc\moc_setupdialog.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;setupdialog.h"
+						Outputs="tmp\moc\moc_setupdialog.cpp"
 					/>
 				</FileConfiguration>
 			</File>
@@ -386,21 +543,17 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\syserrorinfo.h"
-				>
-			</File>
-			<File
-				RelativePath=".\table.h"
+				RelativePath=".\symboleditdialog.h"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="MOC table.h"
-						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 table.h -o tmp\moc\moc_table.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;table.h"
-						Outputs="tmp\moc\moc_table.cpp"
+						Description="MOC symboleditdialog.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 symboleditdialog.h -o tmp\moc\moc_symboleditdialog.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;symboleditdialog.h"
+						Outputs="tmp\moc\moc_symboleditdialog.cpp"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -408,12 +561,42 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						Description="MOC table.h"
-						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 table.h -o tmp\moc\moc_table.cpp&#x0D;&#x0A;"
-						AdditionalDependencies="$(QTDIR)\bin\moc.exe;table.h"
-						Outputs="tmp\moc\moc_table.cpp"
+						Description="MOC symboleditdialog.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 symboleditdialog.h -o tmp\moc\moc_symboleditdialog.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;symboleditdialog.h"
+						Outputs="tmp\moc\moc_symboleditdialog.cpp"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\symbolsmodel.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC symbolsmodel.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\debug_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 symbolsmodel.h -o tmp\moc\moc_symbolsmodel.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;symbolsmodel.h"
+						Outputs="tmp\moc\moc_symbolsmodel.cpp"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="MOC symbolsmodel.h"
+						CommandLine="$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_NO_DEBUG -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I&quot;$(QTDIR)\include\QtCore&quot; -I&quot;$(QTDIR)\include\QtGui&quot; -I&quot;$(QTDIR)\include&quot; -I&quot;$(QTDIR)\include\ActiveQt&quot; -I&quot;tmp\moc\release_static&quot; -I$(QTDIR)\mkspecs\win32-msvc2008 -D_MSC_VER=1500 -DWIN32 symbolsmodel.h -o tmp\moc\moc_symbolsmodel.cpp&#x0D;&#x0A;"
+						AdditionalDependencies="$(QTDIR)\bin\moc.exe;symbolsmodel.h"
+						Outputs="tmp\moc\moc_symbolsmodel.cpp"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\syserrorinfo.h"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -422,7 +605,15 @@
 			UniqueIdentifier="{71ED8ED8-ACB9-4CE9-BBE1-E00B30144E11}"
 			>
 			<File
-				RelativePath="tmp\moc\moc_instrumentbox.cpp"
+				RelativePath="tmp\moc\moc_defaultedit.cpp"
+				>
+			</File>
+			<File
+				RelativePath="tmp\moc\moc_fixlogger.cpp"
+				>
+			</File>
+			<File
+				RelativePath="tmp\moc\moc_fixmessagedialog.cpp"
 				>
 			</File>
 			<File
@@ -430,11 +621,27 @@
 				>
 			</File>
 			<File
+				RelativePath="tmp\moc\moc_mqlproxyserver.cpp"
+				>
+			</File>
+			<File
+				RelativePath="tmp\moc\moc_netmanager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="tmp\moc\moc_quotestablemodel.cpp"
+				>
+			</File>
+			<File
+				RelativePath="tmp\moc\moc_quotestableview.cpp"
+				>
+			</File>
+			<File
 				RelativePath="tmp\moc\moc_scheduler.cpp"
 				>
 			</File>
 			<File
-				RelativePath="tmp\moc\moc_setupdlg.cpp"
+				RelativePath="tmp\moc\moc_setupdialog.cpp"
 				>
 			</File>
 			<File
@@ -442,7 +649,11 @@
 				>
 			</File>
 			<File
-				RelativePath="tmp\moc\moc_table.cpp"
+				RelativePath="tmp\moc\moc_symboleditdialog.cpp"
+				>
+			</File>
+			<File
+				RelativePath="tmp\moc\moc_symbolsmodel.cpp"
 				>
 			</File>
 		</Filter>
@@ -452,15 +663,15 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\connectdlg.cpp"
+				RelativePath=".\baseini.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\defedit.cpp"
+				RelativePath=".\connectdialog.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\defines.cpp"
+				RelativePath=".\defaultedit.cpp"
 				>
 			</File>
 			<File
@@ -468,15 +679,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\fixdispatcher.cpp"
+				RelativePath=".\fixdatamodel.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ini.cpp"
+				RelativePath=".\fixlogger.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\instrumentbox.cpp"
+				RelativePath=".\fixmessagedialog.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\globals.cpp"
 				>
 			</File>
 			<File
@@ -496,7 +711,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\model.cpp"
+				RelativePath=".\mqlproxyserver.cpp"
 				>
 			</File>
 			<File
@@ -504,11 +719,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\quotestablemodel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\quotestableview.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\scheduler.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\setupdlg.cpp"
+				RelativePath=".\setupdialog.cpp"
 				>
 			</File>
 			<File
@@ -516,23 +739,108 @@
 				>
 			</File>
 			<File
-				RelativePath=".\syserrorinfo.cpp"
+				RelativePath=".\symboleditdialog.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\table.cpp"
+				RelativePath=".\symbolsmodel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\syserrorinfo.cpp"
 				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
+			Filter="*.rc,*.ico"
 			>
+			<File
+				RelativePath=".\resources\addorigin.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\addtoview.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\editfix.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\edorigin.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\first.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\inst_moved.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\inst_nochange.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\instedt_moved.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\instedt_nochange.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\instnew_moved.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\instnew_nochange.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\last.ico"
+				>
+			</File>
 			<File
 				RelativePath=".\resources\LMAXAdapter.rc"
 				>
 			</File>
 			<File
+				RelativePath=".\resources\next.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\prev.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\removerow.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\rmfromview.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\rmorigin.ico"
+				>
+			</File>
+			<File
 				RelativePath=".\resources\settings.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\subscribe.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\unsubscribe.ico"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\viewfix.ico"
 				>
 			</File>
 		</Filter>

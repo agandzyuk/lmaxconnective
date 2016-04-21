@@ -1,5 +1,5 @@
-#include "defines.h"
-#include "ini.h"
+#include "globals.h"
+#include "baseini.h"
 #include "fix.h"
 
 #include <QtCore>
@@ -8,8 +8,9 @@
 
 using namespace std;
 
-FIX::FIX(QIni& ini) 
-    : ini_( ini ),
+FIX::FIX() 
+    : ini_( NULL ),
+    flagLock_(new QReadWriteLock()),
     msgSeqNum_(0),
     loggedIn_(),
     lastIncomingTime_(0),
@@ -18,8 +19,12 @@ FIX::FIX(QIni& ini)
     hbi_(0)
 {}
 
-FIX::~FIX() 
-{}
+FIX::~FIX()
+{
+    { QWriteLocker g(flagLock_); }
+    delete flagLock_;
+    flagLock_ = NULL;
+}
 
 string FIX::getField(const QByteArray& message, const char* field, unsigned char reqEntryNum)
 {
@@ -58,15 +63,8 @@ string FIX::getField(const QByteArray& message, const char* field, unsigned char
     return string(message.data()+valPos, sohPos-valPos);
 }    
 
-quint16 FIX::GetChecksum(const char* buf, int buflen)
-{
-	quint32 cks = 0;
-	for(int i = 0; i < buflen; ++i)
-		cks += (unsigned char)buf[i];
-	return cks % 256;
-}
 
-std::string FIX::MakeTime()
+std::string FIX::makeTime()
 {
 	struct tm *area;
 	time_t t = time(NULL);
@@ -83,98 +81,129 @@ std::string FIX::MakeTime()
 	return string(buf);
 }
 
-QByteArray FIX::MakeHeader(char msgType) const
+QByteArray FIX::makeHeader(const char* msgType) const
 {
 	char buff[256];
-	sprintf(buff, "35=%c%c49=%s%c56=%s%c34=%d%c52=%s%c", 
+	sprintf(buff, "35=%s%c49=%s%c56=%s%c34=%d%c52=%s%c", 
         msgType, SOH,
-        ini_.value(SenderCompParam).toStdString().c_str(), SOH,
-        ini_.value(TargetCompParam).toStdString().c_str(), SOH,
+        ini_->value(SenderCompParam).toStdString().c_str(), SOH,
+        ini_->value(TargetCompParam).toStdString().c_str(), SOH,
         ++msgSeqNum_, SOH,
-        MakeTime().c_str(), SOH );
+        makeTime().c_str(), SOH );
 	return buff;
 }
 
-void FIX::ResetMsgSeqNum(quint32 newMsgSeqNum)
-{
-    QReadLocker guard(&flagMutex_);
-    msgSeqNum_ = newMsgSeqNum;
-}
-
-void FIX::CompleteMessage(QByteArray& message) const
+void FIX::completeMessage(QByteArray& message) const
 {
     char tmp[24];
     sprintf(tmp, "8=FIX.4.4%c9=%d%c", SOH, message.size(), SOH);
     message.prepend(tmp);
 
-    sprintf(tmp, "10=%03d%c", GetChecksum(message.data(), message.size()), SOH);
+    sprintf(tmp, "10=%03d%c", getChecksum(message.data(), message.size()), SOH);
     message.append(tmp);
 }
 
-QByteArray FIX::MakeLogon()
+QByteArray FIX::makeLogon()
 {
 	msgSeqNum_ = 0;
-    hbi_ = ini_.value(HeartbeatParam).toInt();
+    hbi_ = ini_->value(HeartbeatParam).toInt();
 
     char buf[128];
 	sprintf_s(buf, 128, "98=0%c108=%d%c141=Y%c553=%s%c554=%s%c", 
         SOH, hbi_, SOH, SOH, 
-        ini_.value(SenderCompParam).toStdString().c_str(), SOH,
-        ini_.value(PasswordParam).toStdString().c_str(), SOH);
+        ini_->value(SenderCompParam).toStdString().c_str(), SOH,
+        ini_->value(PasswordParam).toStdString().c_str(), SOH);
 
     hbi_ *= 1000;
 
-    QByteArray logon = MakeHeader('A').append(buf);
-    CompleteMessage(logon);
+    QByteArray logon = makeHeader("A").append(buf);
+    completeMessage(logon);
     return logon;
 }
 
-QByteArray FIX::MakeLogout() const
+QByteArray FIX::makeLogout() const
 {
-    QByteArray logout = MakeHeader('5');
-	CompleteMessage( logout );
+    QByteArray logout = makeHeader("5");
+	completeMessage( logout );
     return logout;
 }
 
-QByteArray FIX::MakeHeartBeat() const
+QByteArray FIX::makeHeartBeat() const
 {
-    QByteArray hearbeat = MakeHeader('0');
-	CompleteMessage( hearbeat );
+    QByteArray hearbeat = makeHeader("0");
+	completeMessage( hearbeat );
 	return hearbeat;
 }
 
-QByteArray FIX::MakeTestRequest()
+QByteArray FIX::makeTestRequest()
 {
     {
-        QWriteLocker guard(&flagMutex_);
+        QWriteLocker guard(flagLock_);
         testRequestSent_ = true;
     }
 
-    QByteArray test = MakeHeader('1').append("112=TSTTST").append(SOH);
-    CompleteMessage( test );
+    QByteArray test = makeHeader("1").append("112=TSTTST").append(SOH);
+    completeMessage( test );
     return test;
 }
 
-QByteArray FIX::MakeOnTestRequest(const char* TestReqID) const
+QByteArray FIX::makeOnTestRequest(const char* TestReqID) const
 {
-    QByteArray ontest = MakeHeader('0').append("112=").append(TestReqID).append(SOH);
-	CompleteMessage(ontest);
+    QByteArray ontest = makeHeader("0").append("112=").append(TestReqID).append(SOH);
+	completeMessage(ontest);
     return ontest;
 }
 
-QByteArray FIX::MakeMarketDataRequest(const char* symbol, const char* code) const
+QByteArray FIX::makeMarketSubscribe(const char* symbol, qint32 code) const
 {
     char buf[100];
-	sprintf(buf, "262=%s%c263=1%c264=1%c267=2%c269=0%c269=1%c146=1%c48=%s%c22=8%c", 
+	sprintf(buf, "262=%s%c263=1%c264=1%c267=2%c269=0%c269=1%c146=1%c48=%d%c22=8%c", 
             symbol, SOH, SOH, SOH, SOH, SOH, SOH, SOH, code, SOH, SOH);
 
-    QByteArray request = MakeHeader('V').append(buf);
-    CompleteMessage( request );
+    QByteArray request = makeHeader("V").append(buf);
+    completeMessage( request );
 
     return request;
 };
 
-QByteArray FIX::TakeOutgoing()
+QByteArray FIX::makeMarketUnSubscribe(const char* symbol, qint32 code) const
+{
+    if( !loggedIn() )
+        return QByteArray();
+
+    char buf[100];
+	sprintf(buf, "262=%s%c263=2%c264=1%c267=2%c269=0%c269=1%c146=1%c48=%d%c22=8%c", 
+            symbol, SOH, SOH, SOH, SOH, SOH, SOH, SOH, code, SOH, SOH);
+
+    QByteArray request = makeHeader("V").append(buf);
+    completeMessage( request );
+
+    return request;
+};
+
+bool FIX::normalize(QByteArray& rawFix)
+{
+    string f35 = getField(rawFix,"35");
+    if(f35.empty()) return false;
+
+    string hdrTail = getField(rawFix,"52");
+    if(hdrTail.empty()) return false;
+
+    // exeract the message body
+    char buf[10]; sprintf_s(buf,10,"%c10=",SOH);
+    qint16 endpos = rawFix.indexOf(buf)+1;
+    rawFix.truncate(endpos);
+
+    qint16 firstpos = rawFix.indexOf(hdrTail.c_str()) + hdrTail.length() + 1;
+    rawFix.remove(0,firstpos);
+
+    // normalize
+    rawFix.prepend( makeHeader(f35.c_str()) );
+    completeMessage(rawFix);
+    return true;
+}
+
+QByteArray FIX::takeOutgoing()
 {
     if( outgoing_.empty() )
         return QByteArray();
@@ -187,26 +216,32 @@ QByteArray FIX::TakeOutgoing()
     return nocopyObj;
 }
 
-bool FIX::LoggedIn() const
+bool FIX::loggedIn() const
 {
-    QReadLocker guard(const_cast<QReadWriteLock*>(&flagMutex_));
+    QReadLocker g(flagLock_);
     return loggedIn_;
 }
 
-void FIX::SetLoggedIn(bool on)
+void FIX::setLoggedIn(bool on)
 {
-    QWriteLocker guard(&flagMutex_);
+    QWriteLocker guard(flagLock_);
     loggedIn_ = on;
 }
 
-bool FIX::TestRequestSent() const
+bool FIX::testRequestSent() const
 {
-    QReadLocker guard(const_cast<QReadWriteLock*>(&flagMutex_));
+    QReadLocker guard(flagLock_);
     return testRequestSent_;
 }
 
-void FIX::SetTestRequestSent(bool on)
+void FIX::setTestRequestSent(bool on)
 {
-    QWriteLocker guard(&flagMutex_);
+    QWriteLocker guard(flagLock_);
     testRequestSent_ = on;
+}
+
+void FIX::resetMsgSeqNum(quint32 newMsgSeqNum)
+{
+    QReadLocker g(flagLock_);
+    msgSeqNum_ = newMsgSeqNum;
 }

@@ -1,16 +1,20 @@
 #include "sslclient.h"
+
+#include "globals.h"
 #include "syserrorinfo.h"
+#include "fix.h"
 
-#include <QtWidgets/QMessageBox>
-#include <QtNetwork/QSslCipher>
+
+#include <QtCore>
+#include <QtNetwork>
 #include <QSslConfiguration>
-
-#include <windows.h>
 #include <string>
 
-
+#include <Windows.h>
 
 #define SOCKET_BUFSIZE 0x2000
+
+//FILE *fcheck = NULL;
 
 /////////////////
 QString SslClient::infoEstablished  = tr("Established"); // success connection
@@ -22,109 +26,162 @@ QString SslClient::infoClosing      = tr("Closing"); // closing in progress
 QString SslClient::infoUnconnected  = tr("Unconnected"); // closed
 
 /////////////////
-SslClient::SslClient(RequestHandler* handler, QSsl::SslProtocol protocol)
+SslClient::SslClient(QSsl::SslProtocol protocol, RequestHandler* handler)
     : handler_(handler),
-    messagesLog_(NULL)
+    running_(false),
+    proto_(protocol),
+    ssl_(NULL),
+    host_("not_configured"),
+    port_(443)
 {
-    connect(this, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(socketStateChanged(QAbstractSocket::SocketState)));
-    connect(this, SIGNAL(encrypted()), this, SLOT(socketEncrypted()));
-    connect(this, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(socketError(QAbstractSocket::SocketError)));
-    connect(this, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrors(QList<QSslError>)));
-    connect(this, SIGNAL(readyRead()), this, SLOT(socketReadyRead()));
-    connect(this, SIGNAL(readChannelFinished()), this, SLOT(socketReadyRead()));
     connect(this, SIGNAL(asyncSending(QByteArray)), this, SLOT(socketSendMessage(QByteArray)));
-
-    ConfigureForLMAX(protocol);
 }
 
 SslClient::~SslClient()
 {
-    if(messagesLog_) {
-        fprintf(messagesLog_, "\nClosing time %s\n\n\n", Global::timestamp().c_str());
-        fclose(messagesLog_);
-    }
-}
-
-void SslClient::ConfigureForLMAX(QSsl::SslProtocol proto)
-{
-    // configure required session protocol
-    QSslConfiguration config = sslConfiguration();
-    QSsl::SslProtocol p = config.sessionProtocol();
-    if( p != proto )
-        config.setProtocol(proto);
-
-    config.setPeerVerifyMode(VerifyNone);
-    config.setSslOption(QSsl::SslOptionDisableServerNameIndication, true);
-    setSslConfiguration(config);
+    stop();
 }
 
 void SslClient::establish(const QString& host, quint16 port)
 {
-    handler_->onStateChanged(ProgressState);
-    connectToHostEncrypted(host, port);
+    QMutexLocker blocked(&threadLock_);
+    start();
+    host_ = host;
+    port_ = port;
+    threadEvent_.wait(&threadLock_);
+
+    if(ssl_.isNull() || running_ == false)
+        Q_ASSERT_X(ssl_.isNull() || running_ == false, "SslClient::establish", "Cannot start SslClient's thread");
+
+    connect(ssl_.data(), SIGNAL(stateChanged(QAbstractSocket::SocketState)), 
+            this, SLOT(socketStateChanged(QAbstractSocket::SocketState)), Qt::DirectConnection);
+    connect(ssl_.data(), SIGNAL(encrypted()), 
+            this, SLOT(socketEncrypted()), Qt::DirectConnection);
+    connect(ssl_.data(), SIGNAL(error(QAbstractSocket::SocketError)), 
+            this, SLOT(socketError(QAbstractSocket::SocketError)), Qt::DirectConnection);
+    connect(ssl_.data(), SIGNAL(sslErrors(QList<QSslError>)), 
+            this, SLOT(sslErrors(QList<QSslError>)), Qt::DirectConnection);
+    connect(ssl_.data(), SIGNAL(readyRead()), 
+            this, SLOT(socketReadyRead()), Qt::DirectConnection);
+
+    ConfigureForLMAX();
 }
 
+void SslClient::run()
+{
+    Q_ASSERT_X(running_==0,"SslClient::run", "Thread object reuse");
+    Q_ASSERT_X(ssl_.isNull(),"SslClient::run", "Socket object reuse");
+
+    emit notifyStateChanged(ProgressState, NoDisconnect);
+    handler_->onStateChanged(ProgressState, NoDisconnect);
+    ssl_.reset(new QSslSocket(this));
+
+    ssl_->connectToHostEncrypted(host_,port_);
+
+    running_ = true;
+    threadEvent_.wakeOne();
+
+    { QMutexLocker blocked(&threadLock_); }
+    QThread::exec();
+
+    QMutexLocker blocked(&threadLock_);
+    ssl_->close();
+    ssl_.reset();
+}
+
+void SslClient::stop()
+{
+    running_ = false;
+    {
+        QMutexLocker blocked(&threadLock_);
+        exit();
+    }
+    wait();
+}
+
+void SslClient::ConfigureForLMAX()
+{
+    // configure required session protocol
+    QSslConfiguration config = ssl_->sslConfiguration();
+    QSsl::SslProtocol p = config.sessionProtocol();
+    if( p != proto_ )
+        config.setProtocol(proto_);
+
+    config.setPeerVerifyMode(QSslSocket::VerifyNone);
+    config.setSslOption(QSsl::SslOptionDisableServerNameIndication, true);
+    ssl_->setSslConfiguration(config);
+}
 
 void SslClient::socketSendMessage(const QByteArray& message)
 {
-    qint64 written = QSslSocket::write( message );
+    if( !running_ )
+        return;
+
+    qint64 written = ssl_->write( message );
     if( written <= 0 ) 
     {
-        QList<QSslError> errLst = QSslSocket::sslErrors();
+        QList<QSslError> errLst = ssl_->sslErrors();
         if( !errLst.empty() ) {
             QString msg("SSL errors:\n");
             for(QList<QSslError>::const_iterator It = errLst.begin(); It != errLst.end(); ++It)
                 msg += It->errorString() + "\n";
-            setIOError( msg );
-            handler_->onStateChanged(WarningState);
-        }
-    }
-    else {
-        if( NULL == messagesLog_ ) {
-            if( messagesLog_ = fopen(MESSAGES_LOGGING_FILE, "a+") ) 
-            {
-                fprintf(messagesLog_, "///////////////////////////////////////////////////////////\n");
-                fprintf(messagesLog_, "// Log session created. Start time %s //\n", Global::timestamp().c_str());
-                fprintf(messagesLog_, "///////////////////////////////////////////////////////////\n\n");
-            }
-        }
-        if( messagesLog_ ) {
-            fprintf(messagesLog_, "[%s]  >> %s\n", Global::timestamp().c_str(), message.data());
-            fflush(messagesLog_);
+            setIOError(msg);
+            emit notifyStateChanged(WarningState, NoDisconnect);
+            handler_->onStateChanged(WarningState, NoDisconnect);
         }
     }
 }
 
 void SslClient::socketReadyRead()
 {
-    if( !bytesAvailable() )
+    if( !ssl_->bytesAvailable() )
         return;
     
-    QByteArray message = QSslSocket::read(SOCKET_BUFSIZE);
+    QByteArray message = ssl_->read(SOCKET_BUFSIZE);
     if( 0 == message.size() ) 
     {
-        QList<QSslError> errLst = QSslSocket::sslErrors();
+        QList<QSslError> errLst = ssl_->sslErrors();
         if( !errLst.empty() ) {
             QString msg("SSL errors:\n");
             for(QList<QSslError>::const_iterator It = errLst.begin(); It != errLst.end(); ++It)
                 msg += It->errorString() + "\n";
             setIOError( msg );
-            handler_->onStateChanged(WarningState);
+            emit notifyStateChanged(WarningState, NoDisconnect);
+            handler_->onStateChanged(WarningState, NoDisconnect);
         }
     }
-    else {
-        if( NULL == messagesLog_ ) {
-            if( messagesLog_ = fopen(MESSAGES_LOGGING_FILE, "a+") ) 
+    else
+    {
+/*        std::string type = FIX::getField(message,"35");
+        if(!type.empty() && type[0] == 'W') {
+            std::string sym = FIX::getField(message,"262");
+            if( !sym.empty() )
             {
-                fprintf(messagesLog_, "///////////////////////////////////////////////////////////\n");
-                fprintf(messagesLog_, "// Log session created. Start time %s //\n", Global::timestamp().c_str());
-                fprintf(messagesLog_, "///////////////////////////////////////////////////////////\n\n");
+                std::string ask, bid;
+                int entries = atol(FIX::getField(message,"268").c_str());
+                for(int n = 0; n < entries; n++)
+                {
+                    type = FIX::getField(message,"269",n);
+                    if( !type.empty() && type[0] == '0' )
+                        bid = FIX::getField(message,"270",n);
+                    else if( !type.empty() && type[0] == '1' )
+                        ask = FIX::getField(message,"270",n);
+                }
+
+                if( !bid.empty() || !ask.empty() )
+                {
+                    if(fcheck == NULL)
+                        fcheck = fopen("onsocket.txt", "w+c");
+
+                    fprintf(fcheck, "%s: \"%s\"\task=%s, bid=%s\n", 
+                                    Global::timestamp().c_str(), 
+                                    sym.c_str(), 
+                                    ask.c_str(), 
+                                    bid.c_str());
+                    fflush(fcheck);
+                }
             }
-        }
-        if( messagesLog_ ) {
-            fprintf(messagesLog_, "[%s] <<  %s\n", Global::timestamp().c_str(), message.data());
-            fflush(messagesLog_);
-        }
+        }*/
         handler_->onMessageReceived(message);
     }
 }
@@ -136,40 +193,43 @@ void SslClient::socketStateChanged(QAbstractSocket::SocketState state)
     RequestHandler::ConnectionState uiState = InitialState;
     switch(state)
     {
-    case UnconnectedState:
+    case QSslSocket::UnconnectedState:
         uiState = UnconnectState;
         break;
-    case ClosingState:
+    case QSslSocket::ClosingState:
         uiState = CloseWaitState;
         break;
-    case HostLookupState:
-    case ConnectingState:
+    case QSslSocket::HostLookupState:
+    case QSslSocket::ConnectingState:
+        ioError_.clear();
         uiState = ProgressState;
         break;
-    case ConnectedState:
-        handler_->onHaveToLogin();
-    case BoundState:
-    case ListeningState:
+    case QSslSocket::ConnectedState:
+    case QSslSocket::BoundState:
+    case QSslSocket::ListeningState:
+        ioError_.clear();
         uiState = EstablishState;
         break;
     }
-    handler_->onStateChanged(uiState);
+    emit notifyStateChanged(uiState, NoDisconnect);
+    handler_->onStateChanged(uiState, NoDisconnect);
 }
 
 void SslClient::socketEncrypted()
 {
-    QSslCipher ciph = sessionCipher();
+    QSslCipher ciph = ssl_->sessionCipher();
     QString cipher = QString("%1, %2 (%3/%4)").arg(ciph.authenticationMethod())
                      .arg(ciph.name()).arg(ciph.usedBits()).arg(ciph.supportedBits());
     CDebug() << "SSL cipher " << cipher;
 }
 
+
 void SslClient::socketError(QAbstractSocket::SocketError err)
 {
     if( lastError().isEmpty() ) {
         QString output;
-        QDebug dbg(&output);
-        dbg << err;
+        QDebug errinfo(&output);
+        errinfo << err;
         setIOError(output);
     }
     handleDisconnectError(err);
@@ -179,14 +239,25 @@ void SslClient::sslErrors(const QList<QSslError>& errors)
 {
     Q_UNUSED(errors);
 
-    ignoreSslErrors();
-    QAbstractSocket::SocketState st = state();
+    ssl_->ignoreSslErrors();
+    QAbstractSocket::SocketState st = ssl_->state();
     if( st != QAbstractSocket::ConnectedState )
     {
-        socketStateChanged(state());
-        if( st == QAbstractSocket::ClosingState )
-            handler_->onStateChanged(WarningState);
+        socketStateChanged(ssl_->state());
+        if( st == QAbstractSocket::ClosingState ) {
+            emit notifyStateChanged(WarningState, NoDisconnect);
+            handler_->onStateChanged(WarningState, NoDisconnect);
+        }
     }
+}
+
+QString SslClient::lastError() const
+{ 
+    QString tmp;
+    if( !ssl_.isNull() )
+        tmp = ssl_->errorString().isEmpty() ? ioError_ : ssl_->errorString(); 
+    ioError_.clear();
+    return tmp;
 }
 
 void SslClient::handleDisconnectError(QAbstractSocket::SocketError sockError)
@@ -194,27 +265,40 @@ void SslClient::handleDisconnectError(QAbstractSocket::SocketError sockError)
     short disconnectStatus = ClientDisconnect;
     switch( sockError )
     {
-    case RemoteHostClosedError:
-    case SocketTimeoutError:
-    case SocketResourceError:
-    case UnfinishedSocketOperationError:
-    case SslHandshakeFailedError:
-    case UnsupportedSocketOperationError:
-    case ProxyConnectionClosedError:
-    case ProxyConnectionTimeoutError:
-    case OperationError:
+    case QAbstractSocket::RemoteHostClosedError:
+    case QAbstractSocket::SocketTimeoutError:
+    case QAbstractSocket::SocketResourceError:
+    case QAbstractSocket::UnfinishedSocketOperationError:
+    case QAbstractSocket::SslHandshakeFailedError:
+    case QAbstractSocket::UnsupportedSocketOperationError:
+    case QAbstractSocket::ProxyConnectionClosedError:
+    case QAbstractSocket::ProxyConnectionTimeoutError:
+    case QAbstractSocket::OperationError:
         disconnectStatus = RemoteDisconnect;
         break;
-    case HostNotFoundError:
-    case SocketAccessError:
-    case AddressInUseError:
-    case DatagramTooLargeError:
-    case SocketAddressNotAvailableError:
-    case ProxyAuthenticationRequiredError:
-    case ProxyNotFoundError:
-    case ProxyProtocolError:
+    case QAbstractSocket::HostNotFoundError:
+    case QAbstractSocket::SocketAccessError:
+    case QAbstractSocket::AddressInUseError:
+    case QAbstractSocket::DatagramTooLargeError:
+    case QAbstractSocket::SocketAddressNotAvailableError:
+    case QAbstractSocket::ProxyAuthenticationRequiredError:
+    case QAbstractSocket::ProxyNotFoundError:
+    case QAbstractSocket::ProxyProtocolError:
         disconnectStatus = ForcedDisconnect;
         break;
     }
+    emit notifyStateChanged(ErrorState, disconnectStatus);
     handler_->onStateChanged(ErrorState, disconnectStatus);
+}
+
+void SslClient::setIOError(const QString& error) const
+{ 
+    if( ssl_.isNull() )
+        return;
+
+    QString serr = ssl_->errorString();
+    if( !serr.isEmpty() ) {
+        CDebug() << "SslClient::setIOError " << error;
+        ioError_ = error;
+    }
 }

@@ -1,17 +1,17 @@
 #ifndef __syserrorinfo_h__
 #define __syserrorinfo_h__
 
-#include <QString>
+#include <string>
 
 class SysErrorInfo 
 {
 public:
-    SysErrorInfo(const QString& msg, int errNo);
-    inline const QString& get() const
+    SysErrorInfo(const std::string& msg, int errNo);
+    inline const std::string& get() const
     { return info_; }
 
 private:
-    QString info_;
+    std::string info_;
 };
 
 #endif // __syserrorinfo_h__

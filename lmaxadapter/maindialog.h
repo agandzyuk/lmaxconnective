@@ -1,33 +1,35 @@
 #ifndef __maindialog_h__
 #define __maindialog_h__
 
-#include "netmanager.h"
+#include "requesthandler.h"
 #include <QDialog>
 
-class QIni;
-class LMXTable;
+class QuotesTableView;
+class QuotesTableModel;
+class NetworkManager;
+class MqlProxyClient;
 
 QT_BEGIN_NAMESPACE
 class QPushButton;
+class QCheckBox;
 QT_END_NAMESPACE
 
-class MainDialog : public QDialog, public NetworkManager
+class MainDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    MainDialog(QIni& ini);
+    MainDialog();
     ~MainDialog();
+
+public slots:
+    void onReconnectSetCheck(bool on);
+    void onStateLoggingEnabled(int checked);
 
 protected:
     void setupButtons();
     void setupTable();
 
-public:
-    void onStateChanged(ConnectionState state, 
-                        short disconnectStatus = 0);
-
-    bool event(QEvent* e);
     // UI slots
 protected Q_SLOTS:
     void onStart();
@@ -36,15 +38,18 @@ protected Q_SLOTS:
     void asyncStart();
     void asyncStop();
     void initiateReconnect();
+    void onStateChanged(int state, short disconnectStatus = 0);
     
 private:
     QPushButton* startButton_;
     QPushButton* stopButton_;
     QPushButton* colorButton_;
     QPushButton* settingsButton_;
-    LMXTable*    table_;
+    QCheckBox*   reconnectBox_;
+    QCheckBox*   loggingBox_;
 
-    QIni& ini_;
+    QSharedPointer<QuotesTableView> tableview_;
+    QSharedPointer<NetworkManager>  netman_;
 };
 
 #endif // __maindialog_h__

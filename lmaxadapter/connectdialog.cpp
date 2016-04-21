@@ -1,14 +1,15 @@
-#include "defines.h"
-#include "connectdlg.h"
-#include "ini.h"
+#include "globals.h"
+#include "connectdialog.h"
 #include "requesthandler.h"
 #include "sslclient.h"
+#include "baseini.h"
+#include "maindialog.h"
+#include "quotestablemodel.h"
 
 #include <QtWidgets>
-#include <QtGui>
 
 ////////////////////////////////////////////////////////////////////////////////////
-ConnectDlg::ConnectDlg(const QIni& ini, QWidget* parent)
+ConnectDialog::ConnectDialog(const BaseIni& ini, QWidget* parent)
     : QDialog(parent),
     ini_(ini),
     state_(InitialState),
@@ -16,7 +17,8 @@ ConnectDlg::ConnectDlg(const QIni& ini, QWidget* parent)
     hasError_(false),
     hasWarning_(false)
 {
-    setWindowFlags(windowFlags()|Qt::Popup);
+    setWindowFlags(windowFlags()|Qt::Popup|Qt::WindowStaysOnTopHint);
+    setWindowModality(Qt::ApplicationModal);
 
     QHBoxLayout* hlayout = new QHBoxLayout();
     hlayout->addWidget( statusEdit_ = new QTextEdit(this) );
@@ -25,28 +27,35 @@ ConnectDlg::ConnectDlg(const QIni& ini, QWidget* parent)
     statusEdit_->setFrameStyle(QFrame::NoFrame);
 
     hlayout->addWidget( disconnectButton_ = new QPushButton(tr("Abort")), 0, Qt::AlignTop);
+    
+    QObject::connect(disconnectButton_, SIGNAL(clicked(bool)), parent, SLOT(onReconnectSetCheck(bool)));
 
     // need to be known about width for height
     QVBoxLayout* vlayout = new QVBoxLayout();
     vlayout->addLayout( hlayout );
     setLayout(vlayout);
 
-    resize(parent->width()*0.60, parent->height()*0.1);
-
+    resize(parentWidget()->width()*0.60, parentWidget()->height()*0.1);
     setWindowTitle(tr("Connection Event"));
 }
 
-void ConnectDlg::setReconnect(bool on)
+void ConnectDialog::setReconnect(bool on)
 {
+    // change reconnecting state on MainDialog by auto
+    if( reconnecting_ && !on) {
+        MainDialog* md = qobject_cast<MainDialog*>(parentWidget());
+        if(md)
+            emit md->onReconnectSetCheck(false);
+    }
     reconnecting_ = on;
 }
 
-void ConnectDlg::showEvent(QShowEvent* e)
+void ConnectDialog::showEvent(QShowEvent* e)
 {
     QDialog::showEvent(e);
 }
 
-void ConnectDlg::hideEvent(QHideEvent* e)
+void ConnectDialog::hideEvent(QHideEvent* e)
 {
     QDialog::hideEvent(e);
 
@@ -58,7 +67,7 @@ void ConnectDlg::hideEvent(QHideEvent* e)
     hasWarning_ = false;
 }
 
-void ConnectDlg::updateStatus(const QString& info)
+void ConnectDialog::updateStatus(const QString& info)
 {
     QString statusText;
 
@@ -98,7 +107,7 @@ void ConnectDlg::updateStatus(const QString& info)
     }
     else if( info == InfoUnconnected )
     {
-        if( reconnecting_ )
+        if( reconnecting_ ) 
             QTimer::singleShot(0, parentWidget(), SLOT(initiateReconnect()));
         state_ = UnconnectState;
     }
@@ -132,7 +141,7 @@ void ConnectDlg::updateStatus(const QString& info)
     setVisibility();
 }
 
-void ConnectDlg::adjustColors()
+void ConnectDialog::adjustColors()
 {
     QPalette pal;
     if( hasError_ )
@@ -151,10 +160,10 @@ void ConnectDlg::adjustColors()
         pal.setColor(QPalette::Text, statusEdit_->palette().color(QPalette::Text));
 
     pal.setColor(QPalette::Base, palette().color(QPalette::Background));
-    statusEdit_->setPalette( pal );
+    statusEdit_->setPalette(pal);
 }
 
-void ConnectDlg::adjustButton()
+void ConnectDialog::adjustButton()
 {
     QString label = tr("Close");
     if( state_ == ProgressState || state_ == CloseWaitState ) 
@@ -168,6 +177,7 @@ void ConnectDlg::adjustButton()
         label = tr("Close");
         QObject::disconnect(disconnectButton_, SIGNAL(clicked()), parentWidget(), SLOT(asyncStop()));
         QObject::connect(disconnectButton_, SIGNAL(clicked()), this, SLOT(hide()));
+        
     }
 
     disconnectButton_->setFixedWidth(label.length()*10);
@@ -175,13 +185,14 @@ void ConnectDlg::adjustButton()
     disconnectButton_->update();
 }
 
-void ConnectDlg::setVisibility()
+void ConnectDialog::setVisibility()
 {
     if( !isVisible() )
     {
         if( (state_ == ProgressState) || 
             (state_ == CloseWaitState) || 
-            (state_ == WarningState) )
+            (state_ == WarningState) || 
+            (state_ == ErrorState) )
         {
             show();
         }

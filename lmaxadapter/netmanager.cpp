@@ -1,66 +1,81 @@
+#include "globals.h"
 #include "netmanager.h"
-#include "ini.h"
-#include "connectdlg.h"
+
+#include "quotestablemodel.h"
+#include "connectdialog.h"
 #include "scheduler.h"
 #include "sslclient.h"
-#include "model.h"
+#include "fixlogger.h"
+#include "mqlproxyserver.h"
 
+#include <QMutex>
 #include <QtWidgets>
-#include <QtCore>
+#include <QSslSocket>
 
 #include <vector>
 #include <algorithm>
 
 using namespace std;
 
-extern bool outerSymbolsUpdate(std::vector<std::string>& symbols);
-extern void outerClearPrices(const QIni& ini);
-
 ////////////////////////////////////////////////////////
-NetworkManager::NetworkManager(QIni& ini) 
-    : ini_(ini),
+NetworkManager::NetworkManager(QWidget* parent) 
+    : QObject(parent),
     state_(Initial),
     disconnectFlags_(None),
-    connectInfoDlg_(NULL)
+    connectDialog_(NULL),
+    flagLock_(new QMutex())
 {
     if( !QSslSocket::supportsSsl() ) {
         QMessageBox::information(NULL, "SSL", "OpenSSL libraries not found!");
         throw std::exception();
     }
+
+    mqlProxy_.reset(new MqlProxyServer(parent));
+    mqlProxy_->start();
+    QObject::connect(mqlProxy_.data(), SIGNAL(notifyNewConnection(QLocalSocket*)), this, SLOT(onMqlConnected(QLocalSocket*)));
+    QObject::connect(mqlProxy_.data(), SIGNAL(notifyReadyRead(QLocalSocket*)), this, SLOT(onMqlReadyRead(QLocalSocket*)));
+
+    model_.reset(new QuotesTableModel(mqlProxy_, parent));
+    scheduler_.reset( new Scheduler(this) );
+    connectDialog_.reset(new ConnectDialog(*model(), parent));
+
+    QObject::connect( this, SIGNAL(notifyDlgSetReconnect(bool)), 
+                      this, SLOT(onDlgSetReconnect(bool)) );
+    QObject::connect( this, SIGNAL(notifyDlgUpdateStatus(QString)), 
+                      this, SLOT(onDlgUpdateStatus(QString)) );
+
+    QObject::connect( model(), SIGNAL(activateRequest(Instrument)), 
+                      scheduler(), SLOT(activateRequest(Instrument)) );
+    QObject::connect( model(), SIGNAL(unsubscribeImmediate(Instrument)),
+                      this, SLOT(onHaveToUnSubscribe(Instrument)) );
+    
+    QObject::connect( model(), SIGNAL(activateResponse(Instrument)), 
+                      scheduler(), SLOT(activateResponse(Instrument)) );
+    
+    QObject::connect( model(), SIGNAL(notifyReconnectSetCheck(bool)), 
+                      parent, SLOT(onReconnectSetCheck(bool)) );
 }
 
 NetworkManager::~NetworkManager()
 {
-    if(dispatcher_->LoggedIn())
-        asyncStop();
+    if(model_->loggedIn())
+        stop();
+
+    { QMutexLocker g(flagLock_); }
+    delete flagLock_;
+    flagLock_ = NULL;
 }
 
-void NetworkManager::setParent(QWidget* parent) 
-{ 
-    if( NULL == scheduler_ ) {
-        scheduler_.reset( new QScheduler(parent) );
-        scheduler_->activateSymbolsUpdater(SYMBOLS_UPDATE_PROVIDER_PERIOD);
-    }
-    if( NULL == dispatcher_ )
-        dispatcher_.reset( new LMXModel(ini_ ,scheduler_.data()) );
-    if( NULL == connectInfoDlg_ )
-        connectInfoDlg_ = new ConnectDlg(ini_, parent);
-    parent_ = parent; 
-}
-
-void NetworkManager::asyncStart(bool reconnect)
+void NetworkManager::start(bool reconnect)
 {
     {
-        QMutexLocker safe(&flagMutex_);
+        QMutexLocker g(flagLock_);
         disconnectFlags_ = None;
-        connectInfoDlg_->setReconnect(reconnect);
+        connectDialog_->setReconnect(reconnect);
     }
 
-    if( !connection_.isNull() )
-        connection_->close();
-    
     QSsl::SslProtocol  ssnproto = QSsl::AnyProtocol;
-    QString proto = ini_.value(ProtocolParam);
+    QString proto = model_->value(ProtocolParam);
 
     if( proto == ProtoSSLv2 )
         ssnproto = QSsl::SslV2; 
@@ -81,25 +96,26 @@ void NetworkManager::asyncStart(bool reconnect)
     else if( proto == ProtoTLSv1_SSLv3 )
         ssnproto = QSsl::TlsV1SslV3; 
 
-    connection_.reset(new SslClient(this, ssnproto));
-    connection_->establish(ini_.value(ServerParam), 443);
+    connection_.reset(new SslClient(ssnproto, this));
+    connection_->establish(model_->value(ServerParam), 443);
+
+    QObject::connect( model(), SIGNAL(notifySendingManual(QByteArray)), 
+                      this, SLOT(onHaveToSendMessage(QByteArray)) );
+    QObject::connect( connection_.data(), SIGNAL(notifyStateChanged(int, short)), 
+                      parent(), SLOT(onStateChanged(int, short)) );
 }
 
-void NetworkManager::asyncStop()
+void NetworkManager::stop()
 {
     {
-        QMutexLocker safe(&flagMutex_);
+        QMutexLocker g(flagLock_);
         disconnectFlags_ = Forced;
-        connectInfoDlg_->setReconnect(false);
-        if( connectInfoDlg_->isVisible() )
-            connectInfoDlg_->hide();
+        connectDialog_->setReconnect(false);
+        if( connectDialog_->isVisible() )
+            connectDialog_->hide();
     }
     onHaveToLogout();
-
-    if( !connection_.isNull() ) {
-        connection_->close();
-        connection_.reset();
-    }
+    connection_.reset();
 }
 
 QString NetworkManager::errorString() const
@@ -109,19 +125,28 @@ QString NetworkManager::errorString() const
 
 short NetworkManager::disconnectStatus() const
 {
-    QMutexLocker safe(&flagMutex_);
+    QMutexLocker g(flagLock_);
     return disconnectFlags_;
 }
 
-void NetworkManager::onStateChanged(ConnectionState state, 
-                                    short disconnectStatus)
+void NetworkManager::onDlgUpdateStatus(const QString& statusInfo)
 {
-    if( state_ == state )
+    connectDialog_->updateStatus(statusInfo);
+}
+
+void NetworkManager::onDlgSetReconnect(bool on)
+{
+    connectDialog_->setReconnect(on);
+}
+
+void NetworkManager::onStateChanged(int state, short disconnectStatus)
+{
+    if( state == (int)state_ )
         return;
-    state_ = state;
+    state_ = (RequestHandler::ConnectionState)state;
 
     QString txtState;
-    switch( state )
+    switch( state_ )
     {
         case Initial:
             txtState = "Initial"; break;
@@ -140,12 +165,12 @@ void NetworkManager::onStateChanged(ConnectionState state,
     }
 
     QString disconnectInfo;
-    if( state == HasError || state == Closing )
+    if( state_ == HasError || state_ == Closing )
     {
-        // restore dispatcher flags 
-        if( state != Closing ) {
-            dispatcher_->SetLoggedIn(false);
-            dispatcher_->SetTestRequestSent(false);
+        // restore fix flags 
+        if( state_ != Closing ) {
+            model_->setLoggedIn(false);
+            model_->setTestRequestSent(false);
         }
 
         if( disconnectStatus == None )
@@ -159,100 +184,163 @@ void NetworkManager::onStateChanged(ConnectionState state,
 
         if( disconnectFlags_ != Forced )
         {
-            QMutexLocker safe(&flagMutex_);
+            QMutexLocker g(flagLock_);
             disconnectFlags_ = disconnectStatus;
         }
         else
             return;
     }
 
-
     CDebug() << "NetworkManager:onStateChanged " << txtState << 
             (disconnectInfo.isEmpty() ? "" : (", status "+disconnectInfo));
 
     if( disconnectFlags_ == Forced )
     {
-        if( state == Unconnect && 
+        if( state_ == Unconnect && 
             scheduler_->reconnectEnabled() && 
-            connectInfoDlg_->getReconnect() ) 
+            connectDialog_->getReconnect() ) 
         {
             QString arg = InfoWarning + ": reconnecting is disabled by reason of network error on client side.";
-            connectInfoDlg_->updateStatus(arg);
-            connectInfoDlg_->setReconnect(false);
+            emit notifyDlgUpdateStatus(arg);
+            emit notifyDlgSetReconnect(false);
         }
     }
-    else if( state == Unconnect  && scheduler_->reconnectEnabled() )
-        connectInfoDlg_->setReconnect(true);
+    else if( state_ == Unconnect  && scheduler_->reconnectEnabled() )
+        emit notifyDlgSetReconnect(true);
+
     
-    if( state == Establish ) 
-        connectInfoDlg_->updateStatus(InfoEstablished);
-    else if( state == Unconnect )
-        connectInfoDlg_->updateStatus(InfoUnconnected);
-    else if( state == Progress )
-        connectInfoDlg_->updateStatus(InfoConnecting);
-    else if( state == HasError )
-        connectInfoDlg_->updateStatus(InfoError + ": " + errorString());
-    else if( state == HasWarning )
-        connectInfoDlg_->updateStatus(InfoWarning + ": " + errorString());
-    else if( state == Closing )
-        connectInfoDlg_->updateStatus(InfoClosing + ": " + (errorString().isEmpty() ? "" : errorString()) );
+    if( state_ == Unconnect )
+        emit notifyDlgUpdateStatus(InfoUnconnected);
+    else if( state_ == Progress )
+        emit notifyDlgUpdateStatus(InfoConnecting);
+    else if( state_ == HasError )
+        emit notifyDlgUpdateStatus(InfoError + ": " + errorString());
+    else if( state_ == HasWarning )
+        emit notifyDlgUpdateStatus(InfoWarning + ": " + errorString());
+    else if( state_ == Closing )
+        emit notifyDlgUpdateStatus(InfoClosing + ": " + (errorString().isEmpty() ? "" : errorString()) );
+    else if( state_ == Establish ) {
+        emit notifyDlgUpdateStatus(InfoEstablished);
+        onHaveToLogin();
+    }
+}
+
+void NetworkManager::onMqlConnected(QLocalSocket* cnt)
+{
+    QVector<string> allMonitored;
+    model_->getSymbolsUnderMonitoring(allMonitored);
+
+    qint16 countOf = allMonitored.size();
+
+    // create transaction even with 0 monitoring instruments (mql client does a same)
+    // this is well to test the first connection and structures parsing
+    MqlProxyQuotes* transaction = (MqlProxyQuotes*)malloc(2 + countOf * sizeof(MqlProxyQuotes::Quote));
+    transaction->numOfQuotes_ = countOf;
+
+    // retrive all snapshots which been subscribed before
+    QSharedPointer<QReadLocker> autolock; // autolock aquired inside getSnapshot only once 
+    for(qint16 i = 0; i < countOf; ++i) {
+        strcpy_s(transaction->quotes_[i].symbol_, MAX_SYMBOL_LENGTH,allMonitored[i].c_str());
+        Snapshot* snap = model_->getSnapshot(allMonitored[i].c_str(), autolock);
+        if(snap) {
+            // copy quotes from snapshot into transaction structure
+            Global::reinterpretDouble(snap->ask_.toStdString().c_str(), &transaction->quotes_[i].ask_);
+            Global::reinterpretDouble(snap->bid_.toStdString().c_str(), &transaction->quotes_[i].bid_);
+        }
+        else {
+            transaction->quotes_[i].ask_ = 0;
+            transaction->quotes_[i].bid_ = 0;
+        }
+    }
+    autolock.reset();
+
+    mqlProxy_->sendMessage((const char*)transaction, cnt);
+    free(transaction); // don't need
+}
+
+void NetworkManager::onMqlReadyRead(QLocalSocket* cnt)
+{
+//    CDebug() << "NetworkManager::onMqlReadyRead";
+    qint64 bytes = cnt->bytesAvailable();
+    if( bytes < 2 ) {
+        CDebug() << "Error: onMqlReadyRead received an empty data";
+        return;
+    }
+
+    char* buffer = (char*)malloc(bytes);
+    const char* ptr = buffer;
+    cnt->read((char*)buffer, bytes);
+
+    qint32 parsed = 0;
+    while( parsed < bytes )
+    {
+        const MqlProxySymbols* mqlPtr = (MqlProxySymbols*)ptr;
+        if(mqlPtr->numOfSymbols_ >= MAX_SYMBOLS ) 
+        {
+            CDebug() << "Error: onMqlReadyRead received an unexpected amount of symbols (" << mqlPtr->numOfSymbols_ << ")";
+            return;
+        }
+
+        for(int i = 0; i < mqlPtr->numOfSymbols_; i++)
+        {
+            const char* sym = mqlPtr->symbols_[i];
+            qint32 code = model_->getCode(sym);
+            if( code == -1) {
+                CDebug() << "Error: onMqlReadyRead received an unsupported symbol \"" << sym << "\"";
+                continue;
+            }
+
+            Instrument inst(sym,code);
+            if( model_->isMonitored(inst) ) {
+                //CDebug() << "onMqlReadyRead skips symbol \"" << sym << "\" adding because it already monitored";
+                continue;
+            }
+
+            model_->setMonitoring(inst, true, false);
+            CDebug(false) << "symbol \"" << sym << "\" added to monitoring";
+        }
+        parsed += (2 + mqlPtr->numOfSymbols_*sizeof(mqlPtr->symbols_[0]));
+        ptr += (2 + mqlPtr->numOfSymbols_*sizeof(mqlPtr->symbols_[0]));
+    }
+    free(buffer);
 }
 
 void NetworkManager::onHaveToLogin()
 {
-    if( dispatcher_->LoggedIn() )
+    if( model_->loggedIn() )
         return;
-
-    QByteArray message = dispatcher_->MakeLogon();
-
-    // send nulls instead prices
-    outerClearPrices(ini_);
-    emit connection_->asyncSending(message);
-
-    CDebug() << "Logon type=\"A\" sent:";
-    CDebug(false) << ">> " << message;
+    onHaveToSendMessage( model_->makeLogon() );
 }
 
 void NetworkManager::onHaveToLogout()
 {
-    if( !dispatcher_->LoggedIn() )
+    model_->beforeLogout();
+
+    if( !model_->loggedIn() )
         return;
 
-    dispatcher_->beforeLogout();
-    outerClearPrices(ini_);
-    if( dispatcher_->LoggedIn() )
-    {
-        QByteArray message = dispatcher_->MakeLogout();
-        emit connection_->asyncSending(message);
-
-        CDebug() << "Logout type=\"5\" sent:";
-        CDebug(false) << ">> " << message;
-
-        dispatcher_->SetLoggedIn(false);
-    }
+    onHaveToSendMessage( model_->makeLogout() );
+    model_->setLoggedIn(false);
 }
 
 void NetworkManager::onHaveToTestRequest()
 {
-    if( !dispatcher_->LoggedIn() )
+    if( !model_->loggedIn() )
         return;
 
-    int hbi = dispatcher_->heartbeatInterval() + 1000;
+    int hbi = model_->getHeartbeatInterval() + 1000;
 
-    int delta = Global::time() - dispatcher_->lastIncoming();
+    int delta = Global::time() - model_->getLastIncoming();
     if( delta >= hbi )
     {
-        if( !dispatcher_->TestRequestSent() )
+        if( !model_->testRequestSent() )
         {
-            QByteArray message = dispatcher_->MakeTestRequest();
-            emit connection_->asyncSending(message);
-
-            CDebug() << ">> TestRequest type=\"1\" sent";
+            onHaveToSendMessage( model_->makeTestRequest() );
         }
         else
         {
             // next time it will work
-            dispatcher_->SetTestRequestSent(false);
+            model_->setTestRequestSent(false);
         }
         delta = hbi;
     }
@@ -262,19 +350,17 @@ void NetworkManager::onHaveToTestRequest()
     scheduler_->activateTestrequest(delta);
 }
 
-void NetworkManager::onHaveToHeartbeat() const
+void NetworkManager::onHaveToHeartbeat()
 {
-    if( !dispatcher_->LoggedIn() )
+    if( !model_->loggedIn() )
         return;
 
-    int hbi = dispatcher_->heartbeatInterval();
+    int hbi = model_->getHeartbeatInterval();
 
-    int delta = Global::time() - dispatcher_->lastOutgoing();
+    int delta = Global::time() - model_->getLastOutgoing();
     if( delta >= hbi )
     {
-        QByteArray message = dispatcher_->MakeHeartBeat();
-        emit connection_->asyncSending(message);
-
+        onHaveToSendMessage( model_->makeHeartBeat() );
         delta = hbi;
     }
     else
@@ -283,85 +369,100 @@ void NetworkManager::onHaveToHeartbeat() const
     scheduler_->activateHeartbeat(delta);
 }
 
-void NetworkManager::onHaveToMarketRequest(const QString& symbol, const QString& code)
+void NetworkManager::onHaveToSubscribe(const Instrument& inst)
 {
-    if( !dispatcher_->LoggedIn() )
-        return;
-
-    QByteArray message = dispatcher_->MakeNewRequest(symbol, code);
-    emit connection_->asyncSending(message);
-
-    // check is a new request from mql client
-    if( !ini_.isMounted(symbol) )
-        ini_.mountSymbol(symbol);
-
-    CDebug() << "Market Request type=\"V\" sent:";
-    CDebug(false) << ">> " << message;
+    QByteArray message = model_->makeSubscribe(inst);
+    if( !message.isNull() )
+        onHaveToSendMessage(message);
+    model()->activateResponse(Instrument("FullUpdate",-1));
 }
 
-void NetworkManager::onHaveToSymbolsUpdate()
+void NetworkManager::onHaveToUnSubscribe(const Instrument& inst)
 {
-    vector<string> symbols;
-    ini_.mountedSymbolsStd(symbols);
-
-    vector<string> copy = symbols;
-    // !outer dll call to check MT provider symbols
-    if( !outerSymbolsUpdate(symbols) )
-        return;
-
-    if( symbols.size() == copy.size()  )
-        return;
-    
-    for(vector<string>::iterator s_It = symbols.begin(); s_It != symbols.end(); ++s_It)
-    {
-        vector<string>::iterator copy_It = std::find(copy.begin(), copy.end(), *s_It);
-        if( copy_It != copy.end() ) {
-            copy.erase(copy_It);
-            continue;
-        }
-
-        QString qSymbol = s_It->c_str();
-        QString code = ini_.originCodeBySymbol(qSymbol);
-        if( !ini_.isMounted(qSymbol) && !code.isEmpty() ) 
-        {
-            qDebug() << "Update: New Request from MQL client for \"" + qSymbol + ":" + code + "\"";
-            ini_.mountSymbol(qSymbol);
-            scheduler_->activateMarketRequest(qSymbol, code);
-        }
-    }
-
-    if(!dispatcher_->LoggedIn())
-        outerClearPrices(ini_);
+    QByteArray message = model_->makeUnSubscribe(inst);
+    if( !message.isNull() )
+        onHaveToSendMessage(message);
+    model()->activateResponse(Instrument("FullUpdate",-1));
 }
 
-void NetworkManager::onMessageReceived(const QByteArray& message) const
+void NetworkManager::onMessageReceived(const QByteArray& message)
 {
-    int ret = dispatcher_->process(message);
+    int ret = model_->process(message);
     if( ret > 0 ) 
     {
         QByteArray message;
         do {
-            message.swap( dispatcher_->TakeOutgoing() );
-            if( !message.isEmpty() ) {
-                emit connection_->asyncSending(message);
-                std::string value = FIX::getField(message,"35");
-                if( value[0] == 'V' ) {
-                    CDebug() << "Market Request type=\"V\" sent:";
-                    CDebug(false) << ">> " << message;
-                }
-                else if( value[0] == '0' && !FIX::getField(message,"112").empty() ) {
-                    CDebug() << "Test Request Response type=\"0\" sent:";
-                    CDebug(false) << ">> " << message;
-                }
-                message.clear();
-            }
-            else
+            message.swap( model_->takeOutgoing() );
+            if( message.isEmpty() )
                 break;
+            onHaveToSendMessage(message);
+            message.clear();
         }
-        while( dispatcher_->LoggedIn() );
+        while( model_->loggedIn() );
     }
-    else if( ret == -1 ) // Server Logout
+    else if( ret == -1 ) // Server Login
+    {
+        scheduler_->activateHeartbeat(model_->getHeartbeatInterval());
+        scheduler_->activateTestrequest(model_->getHeartbeatInterval());
+    }
+    else if( ret == -2 ) // Server Logout
     {
         scheduler_->activateLogout();
     }
+}
+
+bool NetworkManager::onHaveToSendMessage(const QByteArray& message)
+{
+    if( message.isEmpty() )
+        return false;
+
+    string type = FIX::getField(message,"35");
+    if(type.empty())
+        return false;
+
+    string info;
+    string f262sym;
+    qint32 f48code;
+    switch( type[0] )
+    {
+    case '0': { 
+            string f112 = FIX::getField(message,"112");
+            info = f112.empty() ? ("skip") : ("Test Request Response type=\"0\" on TestReqID=\"" + f112 + "\" is sent");
+        }
+        break;
+    case 'V': { 
+            f262sym = FIX::getField(message,"262");
+            f48code = model_->getCode( f262sym.c_str() );
+            char buf[10];
+            string insname = f262sym + ":" + string(ltoa(f48code, buf, 10));
+            info = "Market Request type=\"V\" for \"" + insname + "\" is sent";
+            model_->storeRequestSeqnum(message, f262sym.c_str() );
+        }
+        break;
+    case 'A':
+        info = "Logon type=\"A\" is sent";
+        break;
+    case '5':
+        info = "Logout type=\"5\" is sent";
+        break;
+    case '1':
+        info = "TestRequest type=\"1\" is sent";
+        break;
+    default:
+        return false;
+    }
+
+    emit connection_->asyncSending(message);
+    if( info != "skip" ) {
+        CDebug() << QString::fromStdString(info);
+        CDebug(false) << ">> " << message;
+        if( f262sym.empty() )
+            model()->msglog().outmsg(message);
+        else
+            model()->msglog().outmsg(message, f262sym.c_str(), f48code);
+        if( type[0] == 'V')
+            model()->activateResponse(Instrument("FullUpdate",-1));
+    }
+
+    return true;
 }

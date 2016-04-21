@@ -1,23 +1,11 @@
-#ifndef __defines_h__
-#define __defines_h__
+#ifndef __globals_h__
+#define __globals_h__
 
 #include "logger.h"
 
 #include <QSize>
 #include <QFont>
 #include <QPixmap>
-
-#define VERSION_MAJOR 1
-#define VERSION_MINOR 0
-#define MAKE_VERSION_STRING(major,minor) QString("%1.").arg(major) + QString("%1").arg(minor)
-
-#define DEF_INI_NAME            "./lmax.ini"
-#define MESSAGES_LOGGING_FILE   "./lmax_messages.txt"
-#define INFO_LOGGING_FILE       "./lmax_debug.log"
-#define MAX_LOG_MESSAGE_SIZE    (1024*1024*20)
-#define MAX_LOG_INFO_SIZE       (1024*1024*30)
-
-#define SYMBOLS_UPDATE_PROVIDER_PERIOD      500 // msecs
 
 QT_BEGIN_NAMESPACE
 class QFont;
@@ -40,6 +28,7 @@ QT_END_NAMESPACE
 #define TEXT_DARKGRAY   (QColor(0x33,0x33,0x33))
 
 struct Global {
+    static bool     logging_;
     static QSize    desktop;
     static QFont*   compact;
     static QFont*   native;
@@ -52,23 +41,44 @@ struct Global {
     static QPixmap* pxEditOrigin;
     static QPixmap* pxToAdd;
     static QPixmap* pxToRemove;
-    static QPixmap* pxToRefresh;
     static QPixmap* pxViewFIX;
     static QPixmap* pxEditFIX;
+    static QPixmap* pxFirst;
+    static QPixmap* pxPrev;
+    static QPixmap* pxNext;
+    static QPixmap* pxLast;
+    static QPixmap* pxInstNoChange;
+    static QPixmap* pxInstMoved;
+    static QPixmap* pxInstNewNoChange;
+    static QPixmap* pxInstNewMoved;
+    static QPixmap* pxInstEdtNoChange;
+    static QPixmap* pxInstEdtMoved;
+    static QPixmap* pxSubscribe;
+    static QPixmap* pxUnSubscribe;
+    static QPixmap* pxRemoveRow;
     static QFile*   infoLogFile;
 
     static void init();
+    static void setDebugLog(bool on);
     static std::string timestamp();
-    static qint32   time();
+    static std::string timestamp(qint64 timet);
+    static qint32 time();
+    static qint64 systemtime();
     static void truncateMbFromLog(const char* filename, quint32 sizeLimit);
+    static QString organizationName();
+    static QString productFullName();
+
+    // Helper: adjusts to 5 digits of real accuracy
+    inline static void reinterpretDouble(const char* sznum, double* convert) {
+        *convert = atol(sznum);
+        const char* dot = strchr(sznum,'.');
+        double c = 0.1;
+        while(dot && *(++dot) ) {
+            if( c < 1e-005 ) break;
+            *convert += c * (*dot - 48); 
+            c *= 0.1;
+        }
+    }
 };
 
-//////////////////////////////////////////////////////////////////////////////
-// Disable VisualC compiler deprication warnings
-//////////////////////////////////////////////////////////////////////////////
-#ifdef WIN32
-#pragma warning(disable:4100)
-#pragma warning(disable:4996)
-#endif
-
-#endif /* __defines_h__ */
+#endif // __globals_h__

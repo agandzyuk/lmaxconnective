@@ -1,4 +1,4 @@
-#include "defines.h"
+#include "globals.h"
 #include "resource.h"
 
 #include <QDesktopWidget>
@@ -25,6 +25,12 @@ const int   compactPx    = 9;
 const float nativePx     = 12;
 const float buttonsPx    = 13;
 
+#if !defined(MQL_LOGGING_ENABLED) || !(MQL_LOGGING_ENABLED)
+bool Global::logging_ = false;
+#elif defined(MQL_LOGGING_ENABLED)
+bool Global::logging_ = true;
+#endif
+
 QSize    Global::desktop;
 QFont*   Global::compact;
 QFont*   Global::native;
@@ -37,16 +43,44 @@ QPixmap* Global::pxRemoveOrigin;
 QPixmap* Global::pxEditOrigin;
 QPixmap* Global::pxToAdd;
 QPixmap* Global::pxToRemove;
-QPixmap* Global::pxToRefresh;
 QPixmap* Global::pxViewFIX;
 QPixmap* Global::pxEditFIX;
+QPixmap* Global::pxFirst;
+QPixmap* Global::pxPrev;
+QPixmap* Global::pxNext;
+QPixmap* Global::pxLast;
+QPixmap* Global::pxInstNoChange;
+QPixmap* Global::pxInstMoved;
+QPixmap* Global::pxInstNewNoChange;
+QPixmap* Global::pxInstNewMoved;
+QPixmap* Global::pxInstEdtNoChange;
+QPixmap* Global::pxInstEdtMoved;
+QPixmap* Global::pxSubscribe;
+QPixmap* Global::pxUnSubscribe;
+QPixmap* Global::pxRemoveRow;
+
+
 QFile*   Global::infoLogFile = NULL;
+
+QString Global::organizationName()
+{ return ORGANIZATION_NAME; }
+
+QString Global::productFullName()
+{ return PRODUCT_NAME + QString(" v.%1.%2").arg(VERSION_MAJOR).arg(VERSION_MINOR); }
+
+void Global::setDebugLog(bool on)
+{
+    if( on )
+        infoLogFile = new CLogFile();
+    else if (infoLogFile) {
+        delete infoLogFile;
+        infoLogFile = NULL;
+    }
+}
 
 void Global::init()
 {
-    infoLogFile = new CLogFile();
-    std::string info = "Session started at " + timestamp();
-    CDebug(false) << info.c_str() << "\n";
+    if( logging_ ) setDebugLog(true);
 
     QDesktopWidget desk;
     QRect rcScreen( desk.screenGeometry() );
@@ -76,39 +110,85 @@ void Global::init()
                             MAKEINTRESOURCE(IDI_SETTINGS), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
     pxSettings = new QPixmap( qt_pixmapFromWinHICON(hIco) );
 
-    /*
     hIco = (HICON)::LoadImage(hInst, 
-                            MAKEINTRESOURCE(IDI_ICON2), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+                            MAKEINTRESOURCE(IDI_ADDORIGIN), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
     pxAddOrigin = new QPixmap( qt_pixmapFromWinHICON(hIco) );
 
     hIco = (HICON)::LoadImage(hInst, 
-                            MAKEINTRESOURCE(IDI_ICON3), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+                            MAKEINTRESOURCE(IDI_REMORIGIN), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
     pxRemoveOrigin = new QPixmap( qt_pixmapFromWinHICON(hIco) );
 
     hIco = (HICON)::LoadImage(hInst, 
-                            MAKEINTRESOURCE(IDI_ICON6), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+                            MAKEINTRESOURCE(IDI_EDITORIGIN), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
     pxEditOrigin = new QPixmap( qt_pixmapFromWinHICON(hIco) );
 
     hIco = (HICON)::LoadImage(hInst, 
-                            MAKEINTRESOURCE(IDI_ICON4), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+                            MAKEINTRESOURCE(IDI_ADDTOVIEW), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
     pxToAdd = new QPixmap( qt_pixmapFromWinHICON(hIco) );
 
     hIco = (HICON)::LoadImage(hInst, 
-                            MAKEINTRESOURCE(IDI_ICON5), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+                            MAKEINTRESOURCE(IDI_RMFROMVIEW), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
     pxToRemove = new QPixmap( qt_pixmapFromWinHICON(hIco) );
 
     hIco = (HICON)::LoadImage(hInst, 
-                            MAKEINTRESOURCE(IDI_ICON7), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
-    pxToRefresh = new QPixmap( qt_pixmapFromWinHICON(hIco) );
-
-    hIco = (HICON)::LoadImage(hInst, 
-                            MAKEINTRESOURCE(IDI_ICON8), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+                            MAKEINTRESOURCE(IDI_VIEWFIX), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
     pxViewFIX = new QPixmap( qt_pixmapFromWinHICON(hIco) );
 
     hIco = (HICON)::LoadImage(hInst, 
-                            MAKEINTRESOURCE(IDI_ICON9), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+                            MAKEINTRESOURCE(IDI_EDITFIX), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
     pxEditFIX = new QPixmap( qt_pixmapFromWinHICON(hIco) );
-    */
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_FIRST), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxFirst = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_PREV), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxPrev = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_NEXT), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxNext = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_LAST), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxLast = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_INST_NOCHANGE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxInstNoChange = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_INST_MOVED), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxInstMoved = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_INSTNEW_NOCHANGE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxInstNewNoChange = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_INSTNEW_MOVED), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxInstNewMoved = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_INSTEDT_NOCHANGE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxInstEdtNoChange = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_INSTEDT_MOVED), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxInstEdtMoved = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_SUBSCRIBE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxSubscribe = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_UNSUBSCRIBE), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxUnSubscribe = new QPixmap( qt_pixmapFromWinHICON(hIco) );
+
+    hIco = (HICON)::LoadImage(hInst, 
+                            MAKEINTRESOURCE(IDI_REMOVEROW), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR);
+    pxRemoveRow = new QPixmap( qt_pixmapFromWinHICON(hIco) );
 }
 
 qint32 Global::time()
@@ -116,11 +196,36 @@ qint32 Global::time()
     return ::GetTickCount();
 }
 
+qint64 Global::systemtime()
+{
+    SYSTEMTIME st;
+    ::GetSystemTime(&st);
+    FILETIME ft;
+    ::SystemTimeToFileTime(&st, &ft);
+    qint64 tm64 = ft.dwHighDateTime;
+    tm64 <<= 32;
+    tm64 |= ft.dwLowDateTime;
+    return tm64;
+}
+
 std::string Global::timestamp()
 {
     char out[timestamp_ms_size];
     SYSTEMTIME t;
     ::GetSystemTime(&t);
+	sprintfTimeStampWithMSec(t.wYear, t.wMonth , t.wDay, t.wHour , t.wMinute , t.wSecond, t.wMilliseconds, out);
+    return out;
+}
+
+std::string Global::timestamp(qint64 timet)
+{
+    FILETIME ft;
+    ft.dwHighDateTime = (DWORD)((timet&0xFFFFFFFF00000000)>>32);
+    ft.dwLowDateTime = (DWORD)((timet&0xFFFFFFFF));
+    SYSTEMTIME t;
+    ::FileTimeToSystemTime(&ft, &t);
+
+    char out[timestamp_ms_size];
 	sprintfTimeStampWithMSec(t.wYear, t.wMonth , t.wDay, t.wHour , t.wMinute , t.wSecond, t.wMilliseconds, out);
     return out;
 }

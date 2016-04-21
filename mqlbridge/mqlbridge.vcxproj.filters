@@ -9,12 +9,28 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Generated Files">
+      <UniqueIdentifier>{e607751f-2b42-44fe-be23-c1c378f178c6}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;moc;h;def;odl;idl;res;</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="mqlbridge.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_mqlbridge.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mqlbridge.cpp">
+    <ClCompile Include="mqlproxyclient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tmp\moc\moc_mqlproxyclient.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\lmaxadapter\syserrorinfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -24,7 +40,18 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mqlbridge.h">
+    <CustomBuild Include="mqlbridge.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mqlproxyclient.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\lmaxadapter\external.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\lmaxadapter\syserrorinfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

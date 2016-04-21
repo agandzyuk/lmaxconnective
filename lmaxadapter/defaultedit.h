@@ -1,18 +1,23 @@
-#ifndef __deflineedit_h__
-#define __deflineedit_h__
+#ifndef __defaultedit_h__
+#define __defaultedit_h__
 
 #include <QLineEdit>
 
-class QDefEdit : public QLineEdit
+class DefaultEdit : public QLineEdit
 {
+    Q_OBJECT
+
 public:
-    QDefEdit(QWidget* parent, 
-        const QString& defText, 
-        const QString& helpText);
+    DefaultEdit(QWidget* parent, 
+                const QString& defText, 
+                const QString& helpText);
     
     bool isChanged();
     const QString& defaultText();
     void setDefaultText(const QString& text);
+
+Q_SIGNALS:
+    void notifyModified(bool differs);
 
 protected:
     void keyPressEvent(QKeyEvent* e);
@@ -27,4 +32,4 @@ private:
     bool defColor_;
 };
 
-#endif /* __deflineedit_h__ */
+#endif /* __defaultedit_h__ */

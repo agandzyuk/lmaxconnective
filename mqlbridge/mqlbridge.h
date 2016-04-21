@@ -1,92 +1,104 @@
 #ifndef __mqlbridge_h__
 #define __mqlbridge_h__
 
-#include <QSharedMemory>
+#include "external.h"
 
-#include <windows.h>
-#include <vector>
+#ifndef VERSION_MAJOR
+#define VERSION_MAJOR 1
+#endif
 
-#define MEMORY_SHARING_NAME     "fixmemfilemap"
+#ifndef VERSION_MINOR
+#define VERSION_MINOR 1
+#endif
 
-#define MAX_PROVIDERS           2
-#define MAX_PROVIDER_LENGTH     15
-#define MAX_SYMBOLS             300
-#define MAX_SYMBOL_LENGTH       30
+#include <QScopedPointer>
+#include <QAtomicPointer>
+#include <QReadWriteLock>
+#include <QThread>
 
-struct Quote {
+#include <set>
+#include <map>
+
+////////////////////////////////////////////////////////////////////////////////
+// Macros for Windows API Event
+
+#define InitEvent() ((quintptr)CreateEvent(NULL,FALSE,FALSE,NULL))
+#define DeleteEvent(waiter) (CloseHandle((HANDLE)waiter))
+#define SignalEvent(waiter) (SetEvent((HANDLE)waiter))
+#define WaitForEvent(waiter) (WAIT_OBJECT_0 == WaitForSingleObject((HANDLE)waiter,INFINITE))
+#define TimedWaitForEvent(waiter,tm) (WAIT_OBJECT_0 == WaitForSingleObject((HANDLE)waiter,tm))
+
+////////////////////////////////////////////////////////////////////////////////
+struct MqlQuote {
+    double ask_;
     double bid_;
-	double ask_;
-	double last_;
+    MqlQuote(double ask, double bid) 
+        : ask_(ask), bid_(bid)
+    {}
 };
 
-struct Provider {
-	char  symbols_[MAX_SYMBOLS * MAX_SYMBOL_LENGTH];
-	Quote qoutes_[MAX_SYMBOLS];
-};
+////////////////////////////////////////////////////////////////////////////////
+class MqlProxyClient;
+struct MqlProxySymbols;
 
-struct SharedData {
-	char     providers_[MAX_PROVIDERS * MAX_PROVIDER_LENGTH];
-	Provider data_[MAX_PROVIDERS];
-};
-
-/// 
-class MQLBridge : private QSharedMemory
+class MqlBridge : private QThread
 {
-protected:
-    SharedData* sh;
-    int recurse_;
-
-private:
-    class Locker {
-    public:
-        Locker(MQLBridge* owner) 
-            : owner_(*owner)
-        {
-            if( owner_.recurse_ == 0 ) {
-                owner_.lock();
-                owner_.sh = reinterpret_cast<SharedData*>(owner_.data());
-            }
-            owner_.recurse_++;
-        }
-        ~Locker() 
-        {
-            owner_.recurse_--;
-            if( owner_.recurse_ == 0 ) {
-                owner_.unlock(); 
-                owner_.sh = 0;
-            }
-        }
-    private:
-        MQLBridge& owner_;
-    };
-
+    Q_OBJECT
 public:
-    MQLBridge();
-    ~MQLBridge();
+    MqlBridge();
+    ~MqlBridge();
 
-    bool attach();
+    void attach();
     void detach();
     bool isAttached();
-    void sendMessage(char* symbol, const short type);
 
-    bool    getSymbols(std::vector<std::string>& symbols);
-    double  getBid(const char* symbol);
-    double  getAsk(const char* symbol);
-    void    setBid(const char* symbol, double value);
-    void    setAsk(const char* symbol, double value);
+    inline double getBid(const char* symbol)
+    { return getQuote(symbol, true); }
+
+    inline double getAsk(const char* symbol)
+    { return getQuote(symbol, false); }
+
+    void setBid(const char* symbol, double bid);
+    void setAsk(const char* symbol, double ask);
+
+protected slots:
+    void onTransaction(const char* buffer, qint32 size, qint32* remainder);
+    void onNewConnection();
+    void onDisconnect();
 
 protected:
-    int addProvider(const char* provider);
-    int findProvider(const char* provider);
-    int addSymbol(const int providerId, const char* symbol);
-    int findSymbol(const int providerId, const char* symbol);
+    MqlQuote* MqlBridge::addQuote(const char* sym, QScopedPointer<QWriteLocker>& autolock);
+    MqlQuote* MqlBridge::findQuote(const char* sym, QScopedPointer<QReadLocker>& autolock);
+    bool proxyStart(QScopedPointer<QMutexLocker>& autolock);
+    void proxyConnect(QScopedPointer<QMutexLocker>& autolock);
+    void run();
 
-    // Accessing methods
-    char*       provider(int providerNum);
-    Provider&   providerData(int providerNum);
-    char*       symbol(int providerNum, int symbolNum);
+private:
+    double getQuote(const char* symbol, bool bid);
+    bool   setQuote(const char* symbol, double value, bool bid, QScopedPointer<QReadLocker>& readlock);
+
+    // creates transaction message about new instrument request
+    void sendSingleTransaction(const char* sym);
+
+    // returned buffer must be freed
+    char* createMultipleTransaction(const std::set<std::string>& symbols);
+
+    static void apiShowError(const std::string& info);
+
+private:
+    typedef std::map<std::string,MqlQuote> QuotesT;
+    QuotesT         quotes_;
+    QReadWriteLock* quotesLock_;
+    quintptr        proxyWaiter_;
+    QMutex          proxyLock_;
+
+    QAtomicPointer<MqlProxyClient> connection_;
+    QAtomicInt proxyConnected_;
+    QAtomicInt attached_;
+
+    std::set<std::string> incomingQuotes_;
 };
 
-Q_GLOBAL_STATIC(MQLBridge, spMqlBridge)
+Q_GLOBAL_STATIC(MqlBridge, spMqlBridge)
 
 #endif __mqlbridge_h__

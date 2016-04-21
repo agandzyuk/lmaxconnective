@@ -1,69 +1,81 @@
 #ifndef __fix_h__
 #define __fix_h__
 
-#include <QByteArray>
-#include <QString>
+#include "responsehandler.h"
 #include <QList>
-#include <QReadWriteLock>
-    
+   
 #include <string>
 
 #define SOH (char(0x01))
 
-class QIni;
+class BaseIni;
+
+QT_BEGIN_NAMESPACE;
+class QReadWriteLock;
+QT_END_NAMESPACE;
 
 ///////////////////////////////////////////////////////////
-class FIX
+class FIX : public ResponseHandler
 {
 public:
-    FIX(QIni& ini);
-    virtual ~FIX();
+    FIX();
+    ~FIX();
 
-    static quint16 GetChecksum(const char* buf, int buflen);
-    static std::string MakeTime();
     static std::string getField(const QByteArray& message, 
                                 const char* field, 
                                 unsigned char reqEntryNum = 0);
+    static std::string makeTime();
 
-    QByteArray  MakeLogon();
-    QByteArray  MakeTestRequest();
-    QByteArray  MakeLogout() const;
-    QByteArray  MakeHeartBeat() const;
-    QByteArray  MakeMarketDataRequest(const char* symbol, const char* code) const;
+    QByteArray  makeLogon();
+    QByteArray  makeTestRequest();
+    QByteArray  makeLogout() const;
+    QByteArray  makeHeartBeat() const;
+    QByteArray  makeMarketSubscribe(const char* symbol, qint32 code) const;
+    QByteArray  makeMarketUnSubscribe(const char* symbol, qint32 code) const;
+    QByteArray  takeOutgoing();
 
-    bool LoggedIn() const;
-    void SetLoggedIn(bool on);
+    bool normalize(QByteArray& rawFix);
+    void setLoggedIn(bool on);
+    void resetMsgSeqNum(quint32 newMsgSeqNum);
+    void setTestRequestSent(bool on);
+    bool loggedIn() const;
+    bool testRequestSent() const;
 
-    bool TestRequestSent() const;
-    void SetTestRequestSent(bool on);
-    QByteArray  TakeOutgoing();
-
-    // heartbeat functions
-    qint32 lastIncoming() const
-    { return lastIncomingTime_; }
-    qint32 lastOutgoing() const
-    { return lastOutgoingTime_; }
-    int heartbeatInterval() const
-    { return hbi_; }
+    static inline quint16 getChecksum(const char* buf, int buflen) {
+	    quint32 cks = 0;
+	    for(int i = 0; i < buflen; ++i) cks += (unsigned char)buf[i];
+	    return cks % 256;
+    }
+    inline qint32 getLastIncoming() const { 
+        return lastIncomingTime_; 
+    }
+    inline qint32 getLastOutgoing() const { 
+        return lastOutgoingTime_; 
+    }
+    inline int getHeartbeatInterval() const { 
+        return hbi_; 
+    }
+    inline void setIniModel(const BaseIni* ini) {
+        ini_ = ini;
+    }
 
 protected:
-    QByteArray MakeHeader(char msgType) const;
-    QByteArray MakeOnTestRequest(const char* testReqID) const;
-    void CompleteMessage(QByteArray& message) const;
-    void ResetMsgSeqNum(quint32 newMsgSeqNum);
+    QByteArray makeHeader(const char* msgType) const;
+    QByteArray makeOnTestRequest(const char* testReqID) const;
+    void completeMessage(QByteArray& message) const;
 
 protected:
-    QIni& ini_;
     QList<QByteArray> outgoing_;
 
     qint32  lastIncomingTime_;
     qint32  lastOutgoingTime_;
     int     hbi_;
-    QReadWriteLock flagMutex_;
+    QReadWriteLock* flagLock_;
 
 private:
-    bool loggedIn_;
-    bool testRequestSent_;
+    bool  loggedIn_;
+    bool  testRequestSent_;
+    const BaseIni* ini_;
     mutable quint32 msgSeqNum_;
 };
 
