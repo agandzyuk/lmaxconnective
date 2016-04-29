@@ -64,6 +64,7 @@ struct Global {
     static std::string timestamp(qint64 timet);
     static qint32 time();
     static qint64 systemtime();
+    static qint64 timestamp2time(const std::string& st);
     static void truncateMbFromLog(const char* filename, quint32 sizeLimit);
     static QString organizationName();
     static QString productFullName();

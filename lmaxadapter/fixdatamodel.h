@@ -21,8 +21,8 @@ public:
 
     // Returned > 0 when outgoing messages has to be sent
     // 0 when doesn't need sending after process
-    // -1 when processed login message from server and heartbeat timer should be activated
-    // -2 when processed logout message from server and logging out should be activated
+    // 1 when processed login message from server and heartbeat timer should be activated
+    // -1 when processed logout message from server and logging out should be activated
     int process(const QByteArray& message);
 
     // Make FIX message type "35=V" - request subscribe market data by instrument 

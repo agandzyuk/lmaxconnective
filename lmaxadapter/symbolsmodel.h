@@ -184,7 +184,7 @@ Q_SIGNALS:
     void notifyInstrumentAdd(const Instrument& inst);
     void notifyInstrumentRemove(const Instrument& inst, qint16);
     void notifyInstrumentChange(const Instrument& old, const Instrument& cur);
-    void notifyReconnectSetCheck(bool on);
+    void notifyServerLogout(const QString& reason);
     void unsubscribeImmediate(const Instrument& instrument);
 
 protected:

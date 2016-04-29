@@ -74,13 +74,10 @@ bool Scheduler::activateSSLReconnect()
     if( !allowReconnect_ )
         return false;
 
-    if( manager() ) 
-    {
-        if( manager()->disconnectStatus() == RemoteDisconnect )
-            reconnectInterval_ = 0;
-        else
-            reconnectInterval_ = 2000;
-    }
+    if( manager()->getState() == ClosedRemoteState )
+        reconnectInterval_ = 0;
+    else
+        reconnectInterval_ = 2000;
 
     reconnect_->setSingleShot(true);
     reconnect_->start(reconnectInterval_);
@@ -125,10 +122,8 @@ void Scheduler::activateRequest(const Instrument& inst)
     while(It != reqQueue_.end());
     reqQueue_.push_back(inst);
 
-    if( !requeste_->isActive() ) {
-        requeste_->setSingleShot(true);
-        requeste_->start();
-    }
+    requeste_->setSingleShot(true);
+    requeste_->start();
 }
 
 void Scheduler::activateResponse(const Instrument& inst)
@@ -147,10 +142,8 @@ void Scheduler::activateResponse(const Instrument& inst)
     while(It != respQueue_.end());
     respQueue_.push_back(inst);
 
-    if( !response_->isActive() ) {
-        response_->setSingleShot(true);
-        response_->start();
-    }
+    response_->setSingleShot(true);
+    response_->start();
 }
 
 void Scheduler::setReconnectEnabled(int on)
@@ -234,8 +227,7 @@ void Scheduler::onReconnectEvent()
     if(NULL == mgr || !allowReconnect_)
         return;
 
-    short status = mgr->disconnectStatus();
-    if( status  != ForcedDisconnect ) {
+    if( mgr->getState() != ForcedClosingState ) {
         CDebug() << "Reconnect: passed " << reconnectInterval_ << " msecs";
         QTimer::singleShot(0, mgr->parent(), SLOT(asyncStart()) );
     }

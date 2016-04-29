@@ -6,8 +6,43 @@
 #include "mqlproxyserver.h"
 
 #include <QReadWriteLock>
+#include <Windows.h>
 
 using namespace std;
+
+namespace {
+    string parse52TimeDiff(const string& tag52stamp)
+    {
+        qint64 systemTime = Global::systemtime(); 
+        qint64 serverTime = Global::timestamp2time(tag52stamp);
+        if( serverTime == 0 )
+            return "";
+
+        qint32 diffSecs = (systemTime  - 1000 - serverTime)/1000; // 1 sec aprox ping delay between login and server response
+        string report = (diffSecs < 0 ? " -" : " +");
+        diffSecs = abs(diffSecs);
+
+        char tmp[20] = {0};
+        if( diffSecs > 86400 ) {
+            report += ltoa(qint32(diffSecs/86400),tmp,10);
+            report += "d ";
+            diffSecs %= 86400;
+        }
+
+        sprintf(tmp, "%.2d:", qint32(diffSecs/3600));
+        report += tmp;
+        diffSecs %= 3600;
+
+        sprintf(tmp, "%.2d:", qint32(diffSecs/60));
+        report += tmp;
+        diffSecs %= 60;
+
+        sprintf(tmp, "%.2d", qint32(diffSecs));
+        report += tmp;
+
+        return report;
+    }
+}
 
 //////////////////////////////////////////////////////////////
 FixDataModel::FixDataModel(QSharedPointer<MqlProxyServer>& mqlProxy, QWidget* parent) 
@@ -104,8 +139,19 @@ void FixDataModel::onLogout(const QByteArray& message)
 
     msglog().inmsg(message);
 
-    if( !reason.empty() )
+    if( !reason.empty() ) {
+        if( string::npos != reason.find("SendingTime") )
+        {
+            reason = "SendingTime accuracy problem: time difference ";
+            string diff = parse52TimeDiff( getField(message,"52") );
+            reason += (diff.empty() ? "<parse_error>" : diff);
+        }
+        else if( string::npos != reason.find("BAD_CREDENTIALS") )
+        {
+            reason = "Invalid login or password. Please check the connection settings.";
+        }
         serverLogoutError(reason);
+    }
     else
         beforeLogout();
 }
@@ -599,7 +645,8 @@ void FixDataModel::serverLogoutError(const std::string& reason)
         }
         autolock.reset();
     }
-    emit notifyReconnectSetCheck(Qt::Unchecked);
+
+    emit notifyServerLogout(QString::fromStdString(reason));
     emit activateResponse(Instrument("FullUpdate",-1));
 }
 
@@ -664,7 +711,7 @@ void FixDataModel::mqlClearPrices()
 
 void FixDataModel::mqlSendQuotes(const string& sym, const string& bid, const string& ask)
 {
-    //QThread::msleep(65);
+//    QThread::msleep(65);
 
 /*    CDebug() << "FixDataModel::mqlSendQuotes \"" << sym.c_str() 
              << "\": ask=" << ask.c_str() << ", bid=" << bid.c_str();

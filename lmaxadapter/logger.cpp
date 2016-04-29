@@ -41,7 +41,7 @@ CLogFile::~CLogFile()
 bool CLogFile::checkLoggingEnabled()
 {
     if( Global::logging_ && !isOpen() ) {
-        if( !open(QIODevice::ReadWrite|QIODevice::Append) ) {
+        if( !open(QIODevice::ReadWrite|QIODevice::Append|QIODevice::Text) ) {
             QString info = QString("Cannot open logging file %1\nLogging will be disabled!").arg(FILENAME_DEBUGINFO);
             ::MessageBoxA(NULL, info.toStdString().c_str(), "Error", MB_OK|MB_ICONSTOP);
             return false;

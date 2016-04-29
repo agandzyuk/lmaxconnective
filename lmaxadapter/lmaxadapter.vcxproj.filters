@@ -22,9 +22,6 @@
     <ClInclude Include="baseini.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="connectdialog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="external.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -53,6 +50,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="syserrorinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="statusbar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -91,9 +91,6 @@
       <Filter>Generated Files</Filter>
     </ClCompile>
     <ClCompile Include="baseini.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="connectdialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="defaultedit.cpp">
@@ -160,6 +157,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="fixlogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="statusbar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

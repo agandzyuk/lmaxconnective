@@ -217,10 +217,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\connectdialog.h"
-				>
-			</File>
-			<File
 				RelativePath=".\defaultedit.h"
 				>
 				<FileConfiguration
@@ -543,6 +539,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\statusbar.h"
+				>
+			</File>
+			<File
 				RelativePath=".\symboleditdialog.h"
 				>
 				<FileConfiguration
@@ -667,10 +667,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\connectdialog.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\defaultedit.cpp"
 				>
 			</File>
@@ -736,6 +732,10 @@
 			</File>
 			<File
 				RelativePath=".\sslclient.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\statusbar.cpp"
 				>
 			</File>
 			<File

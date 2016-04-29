@@ -13,9 +13,16 @@ namespace {
     typedef unsigned char  u8;
     typedef unsigned short u16;
 
-    const int   timestamp_ms_size  = sizeof("YYYYMMDD-HH:MM:SS.sss");
+    // 100 nanoseconds between 1960.01.01-00:00:00 and 1970.01.01-00:00:00
+    quint64 const WIN_TIME_CORRECTOR = 116444736000000000ull;
+    const qint8 timestamp_ms_size  = sizeof("YYYYMMDD-HH:MM:SS.sss");
+
     u8 sprintfTimeStamp(u16 year, u8 month, u8 day, u8 hour, u8 minute, u8 second, char* buf);
     u8 sprintfTimeStampWithMSec(u16 year, u8 month, u8 day, u8 hour, u8 minute, u16 second, u16 ms, char* buf);
+	bool parseTimeStamp(const std::string& str, char *year, char *month, char *day, 
+                        char *hour, char *minute, char *second);
+	bool parseTimeStampWithMSec(const std::string& str, char *year, char *month, char *day, 
+                                char *hour, char *minute, char *second, char *msec);
 }
 
 /* external routine */
@@ -202,10 +209,11 @@ qint64 Global::systemtime()
     ::GetSystemTime(&st);
     FILETIME ft;
     ::SystemTimeToFileTime(&st, &ft);
-    qint64 tm64 = ft.dwHighDateTime;
-    tm64 <<= 32;
-    tm64 |= ft.dwLowDateTime;
-    return tm64;
+
+	ULARGE_INTEGER v;
+	v.LowPart = ft.dwLowDateTime;
+	v.HighPart = ft.dwHighDateTime;
+	return (v.QuadPart - WIN_TIME_CORRECTOR) / 10000;    
 }
 
 std::string Global::timestamp()
@@ -228,6 +236,31 @@ std::string Global::timestamp(qint64 timet)
     char out[timestamp_ms_size];
 	sprintfTimeStampWithMSec(t.wYear, t.wMonth , t.wDay, t.wHour , t.wMinute , t.wSecond, t.wMilliseconds, out);
     return out;
+}
+
+qint64 Global::timestamp2time(const std::string& st)
+{
+	char year[5], month[3], day[3], hour[3], minute[3], second[3], milliseconds[4];
+    if( !parseTimeStampWithMSec(st, year, month, day, hour, minute, second, milliseconds) )
+        return 0;
+
+	SYSTEMTIME t; // receives system time
+	t.wYear = atoi(year);
+	t.wMonth = atoi(month);
+	t.wDay = atoi(day);
+	t.wHour = atoi(hour);    
+	t.wMinute = atoi(minute);
+	t.wSecond = atoi(second);
+	t.wMilliseconds = atoi(milliseconds);
+
+	FILETIME ft; // receives file time
+	if(! ::SystemTimeToFileTime(&t, &ft))
+		return 0;
+
+	ULARGE_INTEGER v;
+	v.LowPart = ft.dwLowDateTime;
+	v.HighPart = ft.dwHighDateTime;
+	return (v.QuadPart - WIN_TIME_CORRECTOR) / 10000;    
 }
 
 namespace 
@@ -292,6 +325,35 @@ namespace
     	buf[pos + 0] = 48 + msecond%10; 
     	buf[21] = 0;
         return 21;
+    }
+
+    bool parseTimeStamp(const std::string& str, char *year, char *month, char *day, char *hour, 
+		                char *minute, char *second)
+    {
+        if(timestamp_ms_size-5 > str.length())
+            return false;
+        if(('-' != str.at(8))||(':' != str.at(11))||(':' != str.at(14)))
+            return false;
+    	memcpy(year, &(str.at(0)), 4); year[4] = 0;
+	    memcpy(month, &(str.at(4)), 2); month[2] = 0;
+    	memcpy(day, &(str.at(6)), 2); day[2] = 0;
+	    memcpy(hour, &(str.at(9)), 2); hour[2] = 0;
+    	memcpy(minute, &(str.at(12)), 2); minute[2] = 0;
+        memcpy(second, &(str.at(15)), 2); second[2] = 0;
+        return true;
+    }
+
+    bool parseTimeStampWithMSec(const std::string& str, char *year, char *month, char *day, char *hour, 
+		                        char *minute, char *second, char *msec)
+    {
+        if(timestamp_ms_size-1 > str.length())
+	        return false;
+        if('.' != str.at(17))
+	        return false;
+        if( !parseTimeStamp(str, year, month, day, hour, minute, second) )
+            return false;
+        memcpy(msec, &(str.at(18)), 3); msec[3] = 0;
+        return true;
     }
 }
 

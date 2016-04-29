@@ -5,7 +5,7 @@
 #include "quotestableview.h"
 #include "quotestablemodel.h"
 #include "setupdialog.h"
-#include "connectdialog.h"
+#include "statusbar.h"
 #include "scheduler.h"
 
 #include <QtWidgets>
@@ -21,6 +21,7 @@ MainDialog::MainDialog()
 
     setupButtons();
     setupTable();
+    setupStatus();
 
     setWindowTitle(Global::productFullName());
 }
@@ -49,16 +50,17 @@ void MainDialog::onReconnectSetCheck(bool on)
         reconnectBox_->setChecked(on);
 }
 
-void MainDialog::onStateChanged(int state, short disconnectStatus)
+
+void MainDialog::onStateChanged(quint8 state, const QString& reason)
 {
     QColor clr = BTN_RED;
-    if( state == CloseWaitState || state == ProgressState ) {
+    if( state == EngineClosingState || state == ProgressState ) {
         QCursor* ovrCur = QApplication::overrideCursor();
         if( ovrCur == NULL || ovrCur->shape() != Qt::WaitCursor )
             QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
         clr = BTN_YELLOW;
     }
-    if( state == EstablishState ) {
+    if( state == EstablishState || state == EstablishWarnState ) {
         QApplication::restoreOverrideCursor();
         startButton_->setEnabled( false );
         stopButton_->setEnabled( true );
@@ -73,6 +75,19 @@ void MainDialog::onStateChanged(int state, short disconnectStatus)
     QPalette pal;
     pal.setColor(QPalette::Button, clr);
     colorButton_->setPalette(pal);
+
+    if( state == ProgressState )
+        statusBar_->connecting(netman_->model()->value(ServerParam));
+    else if( state == ReconnectingState )
+        statusBar_->reconnecting();
+    else if( state == EstablishState || state == EstablishWarnState )
+        statusBar_->established(reason);
+    else if( state == ForcedClosingState)
+        statusBar_->loggedOut(reason);
+    else if( state == ClosedFailureState || state == ClosedRemoteState ) {
+        statusBar_->disconnected(reason);
+        netman_->reconnect();
+    }
 }
 
 void MainDialog::setupButtons()
@@ -106,7 +121,8 @@ void MainDialog::setupButtons()
     colorButton_->setPalette( pal );
     colorButton_->show();
 
-    QObject::connect(reconnectBox_ = new QCheckBox(tr("Reconnect After Failure"), this), SIGNAL(stateChanged(int)), netman_->scheduler(), SLOT(setReconnectEnabled(int)));
+    QObject::connect(reconnectBox_ = new QCheckBox(tr("Reconnect After Failure"), this), SIGNAL(stateChanged(int)), 
+                     netman_->scheduler(), SLOT(setReconnectEnabled(int)));
     reconnectBox_->setToolTip(tr("Enable/disable auto-reconnecting after connection failures\nNote that the button takes off itself if disconnection was\nby reason of invalid connection settings,\nnot on server side,\nreceived exchange's logout message"));
     reconnectBox_->setCheckState(Qt::Checked);
     reconnectBox_->setFont(*Global::buttons);
@@ -132,23 +148,25 @@ void MainDialog::setupButtons()
 void MainDialog::setupTable()
 {
     tableview_.reset(new QuotesTableView(this));
-
-    QSize szt( width() - 20, height() - startButton_->height() - 30);
-
     netman_->model()->resetView(tableview_.data());
-
-    tableview_->setFixedSize(szt);
     tableview_->setFont(*Global::compact);
+    tableview_->setFixedSize(width()-20, height() - startButton_->height() - 55);
     tableview_->move(10, startButton_->height() + 20);
     tableview_->show();
     tableview_->updateStyles();
-
     tableview_->setModel(netman_->model());
+}
+
+void MainDialog::setupStatus()
+{
+    statusBar_ = new StatusBar(this);
+    statusBar_->setFixedSize(width()-20, 40);
+    statusBar_->move(10, startButton_->height() + tableview_->height() + 20);
 }
 
 void MainDialog::asyncStart()
 {
-    netman_->start(false);
+    netman_->start();
 }
 
 void MainDialog::asyncStop()
@@ -162,8 +180,3 @@ void MainDialog::onStateLoggingEnabled(int checked)
     Global::setDebugLog(checked == Qt::Checked);
 }
 
-void MainDialog::initiateReconnect()
-{
-    if( !netman_->scheduler()->activateSSLReconnect() )
-        netman_->connectDialog()->setReconnect(false);
-}

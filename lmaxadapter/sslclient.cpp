@@ -8,22 +8,14 @@
 #include <QtCore>
 #include <QtNetwork>
 #include <QSslConfiguration>
-#include <string>
+#include <QWaitCondition>
 
 #include <Windows.h>
+#include <string>
 
 #define SOCKET_BUFSIZE 0x2000
 
 //FILE *fcheck = NULL;
-
-/////////////////
-QString SslClient::infoEstablished  = tr("Established"); // success connection
-QString SslClient::infoConnecting   = tr("Connecting");  // connection in progress
-QString SslClient::infoReconnect    = tr("Reconnect"); // reconnect in progress
-QString SslClient::infoError        = tr("Error"); // error was during a last operation
-QString SslClient::infoWarning      = tr("Warning"); // warning and connection alive
-QString SslClient::infoClosing      = tr("Closing"); // closing in progress
-QString SslClient::infoUnconnected  = tr("Unconnected"); // closed
 
 /////////////////
 SslClient::SslClient(QSsl::SslProtocol protocol, RequestHandler* handler)
@@ -40,15 +32,23 @@ SslClient::SslClient(QSsl::SslProtocol protocol, RequestHandler* handler)
 SslClient::~SslClient()
 {
     stop();
+    delete threadEvent_;
+    threadEvent_ = NULL;
+    delete threadLock_;
+    threadLock_ = NULL;
 }
 
 void SslClient::establish(const QString& host, quint16 port)
 {
-    QMutexLocker blocked(&threadLock_);
-    start();
+    threadLock_  = new QMutex();
+    threadEvent_ = new QWaitCondition();
+
+    QMutexLocker blocked(threadLock_);
     host_ = host;
     port_ = port;
-    threadEvent_.wait(&threadLock_);
+
+    start();
+    threadEvent_->wait(threadLock_);
 
     if(ssl_.isNull() || running_ == false)
         Q_ASSERT_X(ssl_.isNull() || running_ == false, "SslClient::establish", "Cannot start SslClient's thread");
@@ -72,19 +72,16 @@ void SslClient::run()
     Q_ASSERT_X(running_==0,"SslClient::run", "Thread object reuse");
     Q_ASSERT_X(ssl_.isNull(),"SslClient::run", "Socket object reuse");
 
-    emit notifyStateChanged(ProgressState, NoDisconnect);
-    handler_->onStateChanged(ProgressState, NoDisconnect);
     ssl_.reset(new QSslSocket(this));
-
     ssl_->connectToHostEncrypted(host_,port_);
 
     running_ = true;
-    threadEvent_.wakeOne();
+    threadEvent_->wakeOne();
 
-    { QMutexLocker blocked(&threadLock_); }
+    { QMutexLocker blocked(threadLock_); }
     QThread::exec();
 
-    QMutexLocker blocked(&threadLock_);
+    QMutexLocker blocked(threadLock_);
     ssl_->close();
     ssl_.reset();
 }
@@ -93,7 +90,7 @@ void SslClient::stop()
 {
     running_ = false;
     {
-        QMutexLocker blocked(&threadLock_);
+        QMutexLocker blocked(threadLock_);
         exit();
     }
     wait();
@@ -126,8 +123,7 @@ void SslClient::socketSendMessage(const QByteArray& message)
             for(QList<QSslError>::const_iterator It = errLst.begin(); It != errLst.end(); ++It)
                 msg += It->errorString() + "\n";
             setIOError(msg);
-            emit notifyStateChanged(WarningState, NoDisconnect);
-            handler_->onStateChanged(WarningState, NoDisconnect);
+            handler_->onStateChanged(EstablishWarnState);
         }
     }
 }
@@ -146,8 +142,7 @@ void SslClient::socketReadyRead()
             for(QList<QSslError>::const_iterator It = errLst.begin(); It != errLst.end(); ++It)
                 msg += It->errorString() + "\n";
             setIOError( msg );
-            emit notifyStateChanged(WarningState, NoDisconnect);
-            handler_->onStateChanged(WarningState, NoDisconnect);
+            handler_->onStateChanged(EstablishWarnState);
         }
     }
     else
@@ -197,7 +192,7 @@ void SslClient::socketStateChanged(QAbstractSocket::SocketState state)
         uiState = UnconnectState;
         break;
     case QSslSocket::ClosingState:
-        uiState = CloseWaitState;
+        uiState = EngineClosingState;
         break;
     case QSslSocket::HostLookupState:
     case QSslSocket::ConnectingState:
@@ -211,8 +206,10 @@ void SslClient::socketStateChanged(QAbstractSocket::SocketState state)
         uiState = EstablishState;
         break;
     }
-    emit notifyStateChanged(uiState, NoDisconnect);
-    handler_->onStateChanged(uiState, NoDisconnect);
+
+    // ignore engine closing
+    if( uiState != EngineClosingState )
+        handler_->onStateChanged(uiState);
 }
 
 void SslClient::socketEncrypted()
@@ -244,10 +241,8 @@ void SslClient::sslErrors(const QList<QSslError>& errors)
     if( st != QAbstractSocket::ConnectedState )
     {
         socketStateChanged(ssl_->state());
-        if( st == QAbstractSocket::ClosingState ) {
-            emit notifyStateChanged(WarningState, NoDisconnect);
-            handler_->onStateChanged(WarningState, NoDisconnect);
-        }
+        if( st == QAbstractSocket::ClosingState )
+            handler_->onStateChanged(EstablishWarnState);
     }
 }
 
@@ -262,7 +257,7 @@ QString SslClient::lastError() const
 
 void SslClient::handleDisconnectError(QAbstractSocket::SocketError sockError)
 {
-    short disconnectStatus = ClientDisconnect;
+    RequestHandler::ConnectionState st = ClosedFailureState;
     switch( sockError )
     {
     case QAbstractSocket::RemoteHostClosedError:
@@ -274,7 +269,7 @@ void SslClient::handleDisconnectError(QAbstractSocket::SocketError sockError)
     case QAbstractSocket::ProxyConnectionClosedError:
     case QAbstractSocket::ProxyConnectionTimeoutError:
     case QAbstractSocket::OperationError:
-        disconnectStatus = RemoteDisconnect;
+        st = ClosedRemoteState;
         break;
     case QAbstractSocket::HostNotFoundError:
     case QAbstractSocket::SocketAccessError:
@@ -284,11 +279,10 @@ void SslClient::handleDisconnectError(QAbstractSocket::SocketError sockError)
     case QAbstractSocket::ProxyAuthenticationRequiredError:
     case QAbstractSocket::ProxyNotFoundError:
     case QAbstractSocket::ProxyProtocolError:
-        disconnectStatus = ForcedDisconnect;
+        st = ForcedClosingState;
         break;
     }
-    emit notifyStateChanged(ErrorState, disconnectStatus);
-    handler_->onStateChanged(ErrorState, disconnectStatus);
+    handler_->onStateChanged(st);
 }
 
 void SslClient::setIOError(const QString& error) const

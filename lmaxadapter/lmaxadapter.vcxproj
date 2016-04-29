@@ -150,7 +150,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="baseini.h" />
-    <ClInclude Include="connectdialog.h" />
     <CustomBuild Include="defaultedit.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MOC defaultedit.h</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe  -DUNICODE -DWIN32 -DQT_LARGEFILE_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_THREAD_SUPPORT -I"$(QTDIR)\include\QtCore" -I"$(QTDIR)\include\QtGui" -I"$(QTDIR)\include" -I"$(QTDIR)\include\ActiveQt" -I"tmp\moc\debug_static" -I$(QTDIR)\mkspecs\win32-msvc2010 -D_MSC_VER=1500 -DWIN32 defaultedit.h -o tmp\moc\moc_defaultedit.cpp
@@ -316,10 +315,12 @@
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;symbolsmodel.h;%(AdditionalInputs)</AdditionalInputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">tmp\moc\moc_symbolsmodel.cpp;%(Outputs)</Outputs>
     </CustomBuild>
+    <ClInclude Include="statusbar.h" />
     <ClInclude Include="syserrorinfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="fixlogger.cpp" />
+    <ClCompile Include="statusbar.cpp" />
     <ClCompile Include="tmp\moc\moc_defaultedit.cpp" />
     <ClCompile Include="tmp\moc\moc_fixlogger.cpp" />
     <ClCompile Include="tmp\moc\moc_fixmessagedialog.cpp" />
@@ -334,7 +335,6 @@
     <ClCompile Include="tmp\moc\moc_symboleditdialog.cpp" />
     <ClCompile Include="tmp\moc\moc_symbolsmodel.cpp" />
     <ClCompile Include="baseini.cpp" />
-    <ClCompile Include="connectdialog.cpp" />
     <ClCompile Include="defaultedit.cpp" />
     <ClCompile Include="fix.cpp" />
     <ClCompile Include="fixdatamodel.cpp" />

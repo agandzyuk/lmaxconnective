@@ -8,7 +8,6 @@
 #include <QMutex>
 
 class QuotesTableModel;
-class ConnectDialog;
 class SslClient;
 class Scheduler;
 class MqlProxyServer;
@@ -28,53 +27,45 @@ public:
     NetworkManager(QWidget* parent);
     ~NetworkManager();
 
-    void start(bool reconnect);
+    void start();
     void stop();
+    void reconnect();
+    void onStateChanged(ConnectionState state);
+    ConnectionState getState() const;
 
-    inline Scheduler* scheduler() {
-        return scheduler_.data();
-    }
-    inline ConnectDialog* connectDialog() {
-        return connectDialog_.data();
-    }
-    inline QuotesTableModel* model() {
-        return model_.data();
-    }
-    short disconnectStatus() const;
+    inline QuotesTableModel* model() 
+    { return model_.data(); }
+
+    inline Scheduler* scheduler() 
+    { return scheduler_.data(); }
 
 Q_SIGNALS:
-    void notifyDlgUpdateStatus(const QString& info);
-    void notifyDlgSetReconnect(bool on);
+    void notifyStateChanged(quint8 state, const QString& reason);
 
 protected slots:
-    void onStateChanged(int state, short disconnectStatus);
+    void onServerLogout(const QString& reason);
     bool onHaveToSendMessage(const QByteArray& message);
     void onHaveToSubscribe(const Instrument& inst);
     void onHaveToUnSubscribe(const Instrument& inst);
     void onMessageReceived(const QByteArray& message);
     void onMqlConnected(QLocalSocket* cnt);
     void onMqlReadyRead(QLocalSocket* cnt);
-    void onDlgUpdateStatus(const QString& statusInfo);
-    void onDlgSetReconnect(bool on);
 
 protected:
     void onHaveToLogin();
     void onHaveToLogout();
     void onHaveToTestRequest();
     void onHaveToHeartbeat();
-    QString errorString() const;
 
 protected:
     QScopedPointer<Scheduler> scheduler_;
-    QScopedPointer<ConnectDialog> connectDialog_;
     QScopedPointer<QuotesTableModel> model_;
     QScopedPointer<SslClient>  connection_;
     QSharedPointer<MqlProxyServer> mqlProxy_;
 
 private:
+    QMutex* stateLock_;
     ConnectionState state_;
-    QMutex* flagLock_;
-    short disconnectFlags_;
 };
 
 #endif // __netmanager_h__

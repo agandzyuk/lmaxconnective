@@ -2,7 +2,7 @@
 #include "netmanager.h"
 
 #include "quotestablemodel.h"
-#include "connectdialog.h"
+#include "maindialog.h"
 #include "scheduler.h"
 #include "sslclient.h"
 #include "fixlogger.h"
@@ -20,10 +20,8 @@ using namespace std;
 ////////////////////////////////////////////////////////
 NetworkManager::NetworkManager(QWidget* parent) 
     : QObject(parent),
-    state_(Initial),
-    disconnectFlags_(None),
-    connectDialog_(NULL),
-    flagLock_(new QMutex())
+    stateLock_(new QMutex()),
+    state_(Initial)
 {
     if( !QSslSocket::supportsSsl() ) {
         QMessageBox::information(NULL, "SSL", "OpenSSL libraries not found!");
@@ -37,23 +35,17 @@ NetworkManager::NetworkManager(QWidget* parent)
 
     model_.reset(new QuotesTableModel(mqlProxy_, parent));
     scheduler_.reset( new Scheduler(this) );
-    connectDialog_.reset(new ConnectDialog(*model(), parent));
-
-    QObject::connect( this, SIGNAL(notifyDlgSetReconnect(bool)), 
-                      this, SLOT(onDlgSetReconnect(bool)) );
-    QObject::connect( this, SIGNAL(notifyDlgUpdateStatus(QString)), 
-                      this, SLOT(onDlgUpdateStatus(QString)) );
 
     QObject::connect( model(), SIGNAL(activateRequest(Instrument)), 
                       scheduler(), SLOT(activateRequest(Instrument)) );
     QObject::connect( model(), SIGNAL(unsubscribeImmediate(Instrument)),
                       this, SLOT(onHaveToUnSubscribe(Instrument)) );
-    
     QObject::connect( model(), SIGNAL(activateResponse(Instrument)), 
                       scheduler(), SLOT(activateResponse(Instrument)) );
-    
-    QObject::connect( model(), SIGNAL(notifyReconnectSetCheck(bool)), 
-                      parent, SLOT(onReconnectSetCheck(bool)) );
+    QObject::connect( this, SIGNAL(notifyStateChanged(quint8, QString)), 
+                      parent, SLOT(onStateChanged(quint8, QString)) );
+    QObject::connect( model(), SIGNAL(notifyServerLogout(QString)), 
+                      this, SLOT(onServerLogout(QString)) );
 }
 
 NetworkManager::~NetworkManager()
@@ -61,17 +53,16 @@ NetworkManager::~NetworkManager()
     if(model_->loggedIn())
         stop();
 
-    { QMutexLocker g(flagLock_); }
-    delete flagLock_;
-    flagLock_ = NULL;
+    { QMutexLocker g(stateLock_); }
+    delete stateLock_;
+    stateLock_ = NULL;
 }
 
-void NetworkManager::start(bool reconnect)
+void NetworkManager::start()
 {
     {
-        QMutexLocker g(flagLock_);
-        disconnectFlags_ = None;
-        connectDialog_->setReconnect(reconnect);
+        QMutexLocker g(stateLock_);
+        state_ = Initial;
     }
 
     QSsl::SslProtocol  ssnproto = QSsl::AnyProtocol;
@@ -101,128 +92,106 @@ void NetworkManager::start(bool reconnect)
 
     QObject::connect( model(), SIGNAL(notifySendingManual(QByteArray)), 
                       this, SLOT(onHaveToSendMessage(QByteArray)) );
-    QObject::connect( connection_.data(), SIGNAL(notifyStateChanged(int, short)), 
-                      parent(), SLOT(onStateChanged(int, short)) );
 }
 
 void NetworkManager::stop()
 {
     {
-        QMutexLocker g(flagLock_);
-        disconnectFlags_ = Forced;
-        connectDialog_->setReconnect(false);
-        if( connectDialog_->isVisible() )
-            connectDialog_->hide();
+        QMutexLocker g(stateLock_);
+        state_ = ForcedClosingState;
     }
+
     onHaveToLogout();
     connection_.reset();
 }
 
-QString NetworkManager::errorString() const
+void NetworkManager::reconnect()
 {
-    return connection_.isNull() ? "" : connection_->lastError();
+    scheduler_->activateSSLReconnect();
 }
 
-short NetworkManager::disconnectStatus() const
+void NetworkManager::onStateChanged(ConnectionState state)
 {
-    QMutexLocker g(flagLock_);
-    return disconnectFlags_;
-}
-
-void NetworkManager::onDlgUpdateStatus(const QString& statusInfo)
-{
-    connectDialog_->updateStatus(statusInfo);
-}
-
-void NetworkManager::onDlgSetReconnect(bool on)
-{
-    connectDialog_->setReconnect(on);
-}
-
-void NetworkManager::onStateChanged(int state, short disconnectStatus)
-{
-    if( state == (int)state_ )
+    QMutexLocker g(stateLock_);
+    if( state == state_ )
         return;
-    state_ = (RequestHandler::ConnectionState)state;
 
     QString txtState;
-    switch( state_ )
+    switch( state )
     {
         case Initial:
             txtState = "Initial"; break;
-        case Progress:
-            txtState = "Progress"; break;
         case Establish:
             txtState = "Establish"; break;
-        case Closing:
-            txtState = "Closing"; break;
+        case EstablishWithWarning:
+            txtState = "EstablishWithWarning"; break;
+        case Connecting:
+            txtState = "Connecting"; break;
+        case EngineClosing:
+            txtState = "EngineClosing"; break;
+        case ForcedClosing:
+            txtState = "ForcedClosing"; break;
+        case DisconnectByRemote:
+            txtState = "DisconnectByRemote"; break;
+        case DisconnectByFailure:
+            txtState = "DisconnectByFailure"; break;
         case Unconnect:
             txtState = "Unconnect"; break;
-        case HasError:
-            txtState = "HasError"; break;
-        case HasWarning:
-            txtState = "HasWarning"; break;
     }
 
-    QString disconnectInfo;
-    if( state_ == HasError || state_ == Closing )
+    QString reason;
+    if( state == DisconnectByFailure || state == DisconnectByRemote || state == ForcedClosing )
     {
         // restore fix flags 
-        if( state_ != Closing ) {
-            model_->setLoggedIn(false);
-            model_->setTestRequestSent(false);
-        }
-
-        if( disconnectStatus == None )
-            disconnectInfo = "NoDisconnect";
-        else if( disconnectStatus == Client )
-            disconnectInfo = "ClientDisconnect";
-        else if( disconnectStatus == Forced )
-            disconnectInfo = "ForcedDisconnect";
-        else if( disconnectStatus == Remote )
-            disconnectInfo = "RemoteDisconnect";
-
-        if( disconnectFlags_ != Forced )
-        {
-            QMutexLocker g(flagLock_);
-            disconnectFlags_ = disconnectStatus;
-        }
-        else
-            return;
+        model_->setLoggedIn(false);
+        model_->setTestRequestSent(false);
+        reason = connection_->lastError();
     }
 
     CDebug() << "NetworkManager:onStateChanged " << txtState << 
-            (disconnectInfo.isEmpty() ? "" : (", status "+disconnectInfo));
+            (reason.isEmpty() ? "" : (" - \"" + reason + "\""));
 
-    if( disconnectFlags_ == Forced )
+    if( state_ == ForcedClosing && state == Unconnect )
     {
-        if( state_ == Unconnect && 
-            scheduler_->reconnectEnabled() && 
-            connectDialog_->getReconnect() ) 
-        {
-            QString arg = InfoWarning + ": reconnecting is disabled by reason of network error on client side.";
-            emit notifyDlgUpdateStatus(arg);
-            emit notifyDlgSetReconnect(false);
+        if( scheduler_->reconnectEnabled() ) {
+            // update statusbar with normal disconnect state
+            state_ = Unconnect;
+            emit notifyStateChanged(ForcedClosing, "");
+            return;
         }
+        state_ = state;
     }
-    else if( state_ == Unconnect  && scheduler_->reconnectEnabled() )
-        emit notifyDlgSetReconnect(true);
-
-    
-    if( state_ == Unconnect )
-        emit notifyDlgUpdateStatus(InfoUnconnected);
-    else if( state_ == Progress )
-        emit notifyDlgUpdateStatus(InfoConnecting);
-    else if( state_ == HasError )
-        emit notifyDlgUpdateStatus(InfoError + ": " + errorString());
-    else if( state_ == HasWarning )
-        emit notifyDlgUpdateStatus(InfoWarning + ": " + errorString());
-    else if( state_ == Closing )
-        emit notifyDlgUpdateStatus(InfoClosing + ": " + (errorString().isEmpty() ? "" : errorString()) );
-    else if( state_ == Establish ) {
-        emit notifyDlgUpdateStatus(InfoEstablished);
+    else if( state == Connecting && state_ != Initial ) {
+        state_ = Reconnecting;
+    }
+    else if( state == Connecting ) {
+        state_ = Connecting;
+    }
+    else if( state == Establish || state == EstablishWithWarning ) {
         onHaveToLogin();
+        state_ = state;
     }
+    else {
+        state_ = state;
+    }
+
+    emit notifyStateChanged(state_, reason);
+}
+
+void NetworkManager::onServerLogout(const QString& reason)
+{
+    MainDialog* md = qobject_cast<MainDialog*>(parent());
+    if(md)
+        emit md->onReconnectSetCheck(false);
+    scheduler_->setReconnectEnabled(false);
+    state_ = ForcedClosing;
+    emit notifyStateChanged(ForcedClosing, reason);
+}
+
+RequestHandler::ConnectionState NetworkManager::getState() const
+{
+    QMutexLocker g(stateLock_);
+    return state_;
 }
 
 void NetworkManager::onMqlConnected(QLocalSocket* cnt)
@@ -400,12 +369,12 @@ void NetworkManager::onMessageReceived(const QByteArray& message)
         }
         while( model_->loggedIn() );
     }
-    else if( ret == -1 ) // Server Login
+    else if( ret == 1 ) // Server Login
     {
         scheduler_->activateHeartbeat(model_->getHeartbeatInterval());
         scheduler_->activateTestrequest(model_->getHeartbeatInterval());
     }
-    else if( ret == -2 ) // Server Logout
+    else if( ret == -1 ) // Server Logout
     {
         scheduler_->activateLogout();
     }

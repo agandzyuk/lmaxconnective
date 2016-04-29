@@ -37,13 +37,13 @@ public:
     void activateHeartbeat(qint32 ms);
     void activateTestrequest(qint32 ms);
 
+    void setReconnectEnabled(int on);
     bool reconnectEnabled() const
     { return allowReconnect_; }
 
 protected slots:
     void activateRequest(const Instrument& inst);
     void activateResponse(const Instrument& inst);
-    void setReconnectEnabled(int on);
     void exec(TimerID id);
 
 protected:

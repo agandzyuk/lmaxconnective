@@ -8,10 +8,12 @@ class QuotesTableView;
 class QuotesTableModel;
 class NetworkManager;
 class MqlProxyClient;
+class StatusBar;
 
 QT_BEGIN_NAMESPACE
 class QPushButton;
 class QCheckBox;
+class QVBoxLayout;
 QT_END_NAMESPACE
 
 class MainDialog : public QDialog
@@ -22,23 +24,23 @@ public:
     MainDialog();
     ~MainDialog();
 
+protected:
+    void setupButtons();
+    void setupTable();
+    void setupStatus();
+
 public slots:
     void onReconnectSetCheck(bool on);
     void onStateLoggingEnabled(int checked);
 
-protected:
-    void setupButtons();
-    void setupTable();
-
     // UI slots
-protected Q_SLOTS:
+protected slots:
     void onStart();
     void onStop();
     void onSettings();
     void asyncStart();
     void asyncStop();
-    void initiateReconnect();
-    void onStateChanged(int state, short disconnectStatus = 0);
+    void onStateChanged(quint8 state, const QString& reason);
     
 private:
     QPushButton* startButton_;
@@ -47,6 +49,7 @@ private:
     QPushButton* settingsButton_;
     QCheckBox*   reconnectBox_;
     QCheckBox*   loggingBox_;
+    StatusBar*   statusBar_;
 
     QSharedPointer<QuotesTableView> tableview_;
     QSharedPointer<NetworkManager>  netman_;
