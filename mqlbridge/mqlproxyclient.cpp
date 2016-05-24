@@ -63,7 +63,7 @@ bool MqlProxyClient::connectToServer()
     DWORD inBufferSize = 0;
     char username[50] = {0};
 
-//    dbgInfo("MqlProxyClient::connectToServer end");
+    //dbgInfo("MqlProxyClient::connectToServer connected!");
     return true;
 }
 
@@ -237,9 +237,9 @@ void MqlProxyClient::onDisconnect()
 {
 //    dbgInfo("MqlProxyClient::onDisconnect...");
 
-//    if( !errorString_.empty() )
-//        fprintf(localsocklog, "Error: %s\n", errorString_.c_str());
-
+/*    if( !errorString_.empty() )
+        fprintf(localsocklog, "Error: %s\n", errorString_.c_str());
+        */
     pipeBroken_ = true;
     destroyPipe();
     emit notifyDisconnect();

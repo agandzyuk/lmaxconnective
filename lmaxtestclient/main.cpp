@@ -94,7 +94,7 @@ namespace {
                          u8 hour, 
                          u8 minute, 
                          u8 second, 
-                         char* buf )
+                         wchar_t* buf )
     {
     	u8 pos = 0;
 //    	assert(year >= 1000);
@@ -137,7 +137,7 @@ namespace {
                                 u8  minute, 
                                 u8  second, 
                                 u16 msecond, 
-                                char*  buf)
+                                wchar_t*  buf)
     {
     	u8 pos = sprintfTimeStamp(year, month, day, hour, minute, second, buf);
     	buf[pos] = '.';
@@ -150,9 +150,9 @@ namespace {
         return 21;
     }
 
-    std::string timestamp()
+    std::wstring timestamp()
     {
-        char out[timestamp_ms_size];
+        wchar_t out[timestamp_ms_size];
         SYSTEMTIME t;
         ::GetSystemTime(&t);
 	    sprintfTimeStampWithMSec(t.wYear, (u8)t.wMonth , (u8)t.wDay, (u8)t.wHour , (u8)t.wMinute , (u8)t.wSecond, t.wMilliseconds, out);
@@ -162,7 +162,7 @@ namespace {
 
 #include "symbols.cpp"
 ///////////////////////////////////////////////////////////////////////////////////
-typedef double (__stdcall *importGetFunction)(const char*);
+typedef double (__stdcall *importGetFunction)(const wchar_t*);
 
 ///////////////////////////////////////////////////////////////////////////////////
 struct find_string {
@@ -229,10 +229,10 @@ int main(int argc, char* argv[])
     int startRow = 0; 
     int startColumn = 0;
     double bid,ask;
-    const char* szSym;
+    const wchar_t* szSym;
 
     struct Query {
-        string name_;
+        wstring name_;
         double lastBid_;
         double lastAsk_;
     };
@@ -240,7 +240,7 @@ int main(int argc, char* argv[])
     getConsoleSize(&startColumn, &startRow);
 
     time_t starttime = time(0);
-    int count = sizeof(InstNameDefaults)/sizeof(string);
+    int count = sizeof(InstNameDefaults)/sizeof(wstring);
 
     int i = 0;
     for(; i < startRow-6; ++i)
@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
     {
         Query q = {InstNameDefaults[i], 0.0f, 0.0f};
         insts.push_back(q);
-        printf("\"%s\"", q.name_.c_str());
+        wprintf(L"\"%s\"", q.name_.c_str());
 
         int r, c; 
         getCursorPos(&r,&c);
@@ -306,9 +306,9 @@ int main(int argc, char* argv[])
 
         if( changed )
         {
-            char buf[256];
-            sprintf_s(buf, 256, "%s: \"%s\"\task=%f, bid=%f\n", timestamp().c_str(), szSym, ask, bid);
-            fwrite(buf, 1, strlen(buf), fcheck);
+            wchar_t buf[256];
+            swprintf_s(buf, 256, L"%s: \"%s\"\task=%f, bid=%f\n", timestamp().c_str(), szSym, ask, bid);
+            fwrite(buf, 1, wcslen(buf), fcheck);
             fflush(fcheck);
         }
         

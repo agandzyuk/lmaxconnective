@@ -142,7 +142,7 @@ void MqlBridge::onTransaction(const char* buffer, qint32 size, qint32* remainder
     //(*connection_).dbgInfo("MqlBridge::onTransaction");
 
     if( size < 2 ) {
-        (*connection_).dbgInfo("Error in MqlBridge::onTransaction: Received an empty data");
+        //(*connection_).dbgInfo("Error in MqlBridge::onTransaction: Received an empty data");
         Q_ASSERT_X(size >= 2, "MqlBridge::onTransaction()", "Received an empty data");
         return;
     }
@@ -152,7 +152,7 @@ void MqlBridge::onTransaction(const char* buffer, qint32 size, qint32* remainder
     {
         MqlProxyQuotes* transaction = (MqlProxyQuotes*)buffer;
         if( transaction->numOfQuotes_ >= MAX_SYMBOLS ) {
-            (*connection_).dbgInfo("Error in MqlBridge::onTransaction: Received an unexpected amount of symbols");
+            //(*connection_).dbgInfo("Error in MqlBridge::onTransaction: Received an unexpected amount of symbols");
             Q_ASSERT_X(transaction->numOfQuotes_ < MAX_SYMBOLS, "MqlBridge::onTransaction()", "Received an unexpected amount of symbols");
             return;
         }

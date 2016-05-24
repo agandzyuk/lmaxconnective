@@ -1,4 +1,5 @@
 #include "mqlbridge.h"
+#include <QString>
 #include <Windows.h>
 
 ///////////////////////////////////////////////////////////////////////
@@ -49,28 +50,28 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 extern "C" {          // we need to export the C interface
 #endif
 
-DLLEXPORT(double) __getBid(const char* symbol)
+DLLEXPORT(double) __getBid(const wchar_t* symbol)
 {
     BridgeOrZero;
-    return bridge->getBid(symbol);
+    return bridge->getBid(QString::fromWCharArray(symbol).toLocal8Bit());
 }
 
-DLLEXPORT(double) __getAsk(const char* symbol)
+DLLEXPORT(double) __getAsk(const wchar_t* symbol)
 {
     BridgeOrZero;
-    return bridge->getAsk(symbol);
+    return bridge->getAsk(QString::fromWCharArray(symbol).toLocal8Bit());
 }
 
-DLLEXPORT(void) __setBid(const char* symbol, double value)
+DLLEXPORT(void) __setBid(const wchar_t* symbol, double value)
 {
     BridgeOrReturn;
-    bridge->setBid(symbol, value);
+    bridge->setBid(QString::fromWCharArray(symbol).toLocal8Bit(), value);
 }
 
-DLLEXPORT(void) __setAsk(const char* symbol, double value)
+DLLEXPORT(void) __setAsk(const wchar_t* symbol, double value)
 {
     BridgeOrReturn;
-    bridge->setAsk(symbol, value);
+    bridge->setAsk(QString::fromWCharArray(symbol).toLocal8Bit(), value);
 }
 
 #ifdef __cplusplus
